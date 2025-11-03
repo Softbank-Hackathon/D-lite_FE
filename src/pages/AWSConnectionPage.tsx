@@ -14,10 +14,10 @@ import {
   Paper,
   CircularProgress,
   Alert,
-  FormControl, // Import FormControl
-  InputLabel,   // Import InputLabel
-  Select,      // Import Select
-  MenuItem     // Import MenuItem
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 
 // List of common AWS regions
@@ -49,7 +49,6 @@ const AWSConnectionPage: React.FC = () => {
 
     try {
       // Simulate API call to backend for verification
-      // In a real app, you would send roleArn and selectedRegion to the backend
       console.log(`Verifying connection for Role ARN: ${roleArn} in region: ${selectedRegion}`);
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -90,7 +89,7 @@ const AWSConnectionPage: React.FC = () => {
         </Box>
 
         <Box component="form" noValidate sx={{ mt: 2 }}>
-          <Typography variant="h6">Step 2: Submit Role ARN and Select Region</Typography>
+          <Typography variant="h6" sx={{ mb: 3 }}>Step 2: Submit Role ARN and Select Region</Typography> {/* Added mb={3} */}
           <TextField
             required
             fullWidth
@@ -120,7 +119,11 @@ const AWSConnectionPage: React.FC = () => {
             </Select>
           </FormControl>
 
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          {/* Consistent error message space */} 
+          <Box sx={{ minHeight: '50px', mb: 2 }}> {/* Added Box with minHeight */} 
+            {error && <Alert severity="error">{error}</Alert>} {/* Removed mb from Alert */} 
+          </Box>
+
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button
               variant="contained"
