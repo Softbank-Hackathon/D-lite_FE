@@ -85,7 +85,15 @@ const ProjectSetupPage: React.FC = () => {
             </Select>
           </FormControl>
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Button
+              variant="outlined"
+              color="secondary"
+              size="large"
+              onClick={() => navigate('/dashboard')}
+            >
+              Back
+            </Button>
             <Button
               type="submit"
               variant="contained"

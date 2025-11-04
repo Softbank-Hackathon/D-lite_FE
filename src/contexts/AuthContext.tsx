@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import axios from '../api/axiosInstance';
 
 interface User {
   login: string;

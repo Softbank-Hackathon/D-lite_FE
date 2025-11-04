@@ -2,8 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 import './index.css';
-import { AuthProvider } from './contexts/AuthContext';
-import { ProjectProvider } from './contexts/ProjectContext'; // ProjectProvider import 추가
 import { router } from './router';
 
 // Import AOS
@@ -32,11 +30,7 @@ AOS.init({
 enableMocking().then(() => {
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-      <ProjectProvider> {/* ProjectProvider로 감싸기 */}
-        <AuthProvider>
-          <RouterProvider router={router} />
-        </AuthProvider>
-      </ProjectProvider>
+      <RouterProvider router={router} />
     </React.StrictMode>
   );
 });

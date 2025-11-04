@@ -1,17 +1,12 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, CircularProgress, Modal, List, ListItem, ListItemText, Paper, IconButton } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, Modal, List, ListItem, ListItemText, Paper, IconButton, ListItemButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from '../contexts/AuthContext';
-import { useProject } from '../contexts/ProjectContext';
-import axios from 'axios';
+import { useProject, type Repository } from '../contexts/ProjectContext';
+import axios from '../api/axiosInstance';
 import { useNavigate } from 'react-router-dom';
 
-interface Repository {
-  id: number;
-  name: string;
-  full_name: string;
-  private: boolean;
-}
+
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -59,7 +54,22 @@ const DashboardPage: React.FC = () => {
   };
 
   const handleDeployExistingProject = () => {
-    navigate('/connect'); // 기존 프로젝트 배포를 위해 AWS 연결 페이지로 이동
+    if (!project) return;
+
+    // 1. 프로젝트 기본 정보 확인
+    if (!project.projectName || !project.projectType || !project.framework) {
+      navigate('/project-setup');
+      return;
+    }
+
+    // 2. AWS 연결 정보 확인
+    if (!project.roleArn || !project.region) {
+      navigate('/connect');
+      return;
+    }
+
+    // 3. 모든 정보가 있으면 배포 확인 페이지로 이동
+    navigate('/deploy');
   };
 
   if (authLoading) {
@@ -144,8 +154,10 @@ const DashboardPage: React.FC = () => {
           ) : (
             <List>
               {repos.map((repo) => (
-                <ListItem button key={repo.id} onClick={() => handleSelectRepo(repo)}>
-                  <ListItemText primary={repo.full_name} secondary={repo.private ? 'Private' : 'Public'} />
+                <ListItem key={repo.id} disablePadding>
+                  <ListItemButton onClick={() => handleSelectRepo(repo)}>
+                    <ListItemText primary={repo.full_name} secondary={repo.private ? 'Private' : 'Public'} />
+                  </ListItemButton>
                 </ListItem>
               ))}
             </List>

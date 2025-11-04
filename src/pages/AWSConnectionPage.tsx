@@ -32,14 +32,14 @@ const awsRegions = [
 ];
 
 const AWSConnectionPage: React.FC = () => {
-  const [roleArn, setRoleArn] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState(awsRegions[0].value);
+  const { project, updateProjectSettings } = useProject();
+  const navigate = useNavigate();
+
+  // externalId는 이 페이지에서 생성되거나 고정값으로 사용됩니다.
+  const externalId = "dlight-external-id-placeholder";
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const { project } = useProject();
-
-  const externalId = "dlight-external-id-placeholder";
 
   useEffect(() => {
     if (
@@ -53,8 +53,15 @@ const AWSConnectionPage: React.FC = () => {
     }
   }, [project, navigate]);
 
+  const handleSettingChange = (event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+    const { name, value } = event.target;
+    if (name) {
+      updateProjectSettings({ [name]: value });
+    }
+  };
+
   const handleConnect = async () => {
-    if (roleArn.trim() === "") {
+    if (!project?.roleArn?.trim()) {
       setError("Please enter a Role ARN.");
       return;
     }
@@ -62,25 +69,17 @@ const AWSConnectionPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
 
-    try {
-      console.log(
-        `Verifying connection for Role ARN: ${roleArn} in region: ${selectedRegion}`
-      );
-      console.log("Project Details:", project);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+    // externalId와 region을 컨텍스트에 저장합니다.
+    updateProjectSettings({ 
+      externalId,
+      region: project.region || awsRegions[0].value // 사용자가 지역을 선택하지 않은 경우 기본값 사용
+    });
 
-      if (roleArn.includes("success")) {
-        navigate("/status");
-      } else {
-        setError(
-          "Failed to connect. Please check your Role ARN and IAM role settings."
-        );
-      }
-    } catch (e) {
-      setError("An unexpected error occurred during connection.");
-    } finally {
-      setIsLoading(false);
-    }
+    // 실제 API 검증 로직이 필요하다면 여기에 추가할 수 있습니다.
+    // 지금은 바로 다음 페이지로 이동합니다.
+    await new Promise((resolve) => setTimeout(resolve, 500)); 
+
+    navigate("/deploy");
   };
 
   if (!project) {
@@ -184,8 +183,8 @@ const AWSConnectionPage: React.FC = () => {
             label="AWS Role ARN"
             name="roleArn"
             placeholder="arn:aws:iam::123456789012:role/YourRoleName"
-            value={roleArn}
-            onChange={(e) => setRoleArn(e.target.value)}
+            value={project.roleArn || ''}
+            onChange={handleSettingChange}
             disabled={isLoading}
             sx={{ mb: 3 }}
           />
@@ -194,9 +193,10 @@ const AWSConnectionPage: React.FC = () => {
             <Select
               labelId="aws-region-select-label"
               id="aws-region-select"
-              value={selectedRegion}
+              name="region" // name 속성 추가
+              value={project.region || awsRegions[0].value}
               label="AWS Region"
-              onChange={(e) => setSelectedRegion(e.target.value as string)}
+              onChange={handleSettingChange as any}
             >
               {awsRegions.map((region) => (
                 <MenuItem key={region.value} value={region.value}>
@@ -210,7 +210,15 @@ const AWSConnectionPage: React.FC = () => {
             {error && <Alert severity="error">{error}</Alert>}
           </Box>
 
-          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+            <Button
+              variant="outlined"
+              color="secondary"
+              size="large"
+              onClick={() => navigate('/project-setup')}
+            >
+              Back
+            </Button>
             <Button
               variant="contained"
               color="primary"
@@ -223,7 +231,7 @@ const AWSConnectionPage: React.FC = () => {
                 ) : null
               }
             >
-              {isLoading ? "Verifying..." : "Verify & Start Deployment"}
+              {isLoading ? "Saving..." : "Next: Deploy"}
             </Button>
           </Box>
         </Box>

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, type ReactNode, useCallback } from 'react';
 
 // --- Constants for project options ---
 export const FRAMEWORK_OPTIONS = [
@@ -15,17 +15,21 @@ export const PROJECT_TYPE_OPTIONS = {
 };
 
 // --- Interfaces for project data ---
-interface Repository {
+export interface Repository {
   id: number;
   name: string;
   full_name: string;
   private: boolean;
+  html_url: string;
 }
 
 export interface ProjectSettings {
   projectName: string;
   projectType: string | null;
   framework: string | null;
+  region: string | null;
+  roleArn: string | null;
+  externalId: string | null;
 }
 
 export interface Project extends ProjectSettings {
@@ -52,6 +56,9 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
       projectName: repo.name, // Default project name to repo name
       projectType: null,
       framework: null,
+      region: null,
+      roleArn: null,
+      externalId: null,
     });
   }, []);
 

@@ -8,9 +8,9 @@ const mockUser = {
 
 // 가상 GitHub 레포지토리 목록
 const mockRepos = [
-  { id: 1, name: 'project-a', full_name: 'mock-user/project-a', private: false },
-  { id: 2, name: 'project-b', full_name: 'mock-user/project-b', private: true },
-  { id: 3, name: 'project-c', full_name: 'mock-user/project-c', private: false },
+  { id: 1, name: 'project-a', full_name: 'mock-user/project-a', private: false, html_url: 'https://github.com/mock-user/project-a' },
+  { id: 2, name: 'project-b', full_name: 'mock-user/project-b', private: true, html_url: 'https://github.com/mock-user/project-b' },
+  { id: 3, name: 'project-c', full_name: 'mock-user/project-c', private: false, html_url: 'https://github.com/mock-user/project-c' },
 ];
 
 let isAuthenticated = false;
@@ -38,7 +38,7 @@ export const handlers = [
   }),
 
   // 사용자 레포지토리 목록 조회
-  http.get('/api/user/repos', ({ request }) => {
+  http.get('/api/user/repos', () => {
     if (!isAuthenticated) {
       return new HttpResponse(null, { status: 401, statusText: 'Unauthorized' });
     }
