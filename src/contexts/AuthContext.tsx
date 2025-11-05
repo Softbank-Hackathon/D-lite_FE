@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await axios.get('/api/auth/status');
+        const response = await axios.get('/api/v1/auth/status');
         if (response.data.isAuthenticated) {
           setIsAuthenticated(true);
           setUser(response.data.user);
@@ -41,9 +41,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = () => {
-    // 실제 백엔드에서는 이 함수가 GitHub OAuth 로그인 페이지로 리디렉션합니다.
-    // MSW 환경에서는 콜백 페이지로 직접 이동하는 것을 시뮬레이션합니다.
-    window.location.href = '/auth/github/callback?code=mock_code'; // 바로 콜백 페이지로 이동
+    const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
+    const GITHUB_REDIRECT_URI = import.meta.env.VITE_GITHUB_REDIRECT_URI;
+    const GITHUB_AUTHORIZE_URL = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${GITHUB_REDIRECT_URI}&scope=repo,user`;
+
+    window.location.href = GITHUB_AUTHORIZE_URL;
   };
 
   const logout = async () => {

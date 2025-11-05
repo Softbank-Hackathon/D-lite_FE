@@ -4,7 +4,7 @@ import App from "../App";
 import AWSConnectionPage from "../pages/AWSConnectionPage";
 import HomePage from "../pages/HomePage";
 import DeploymentStatusPage from "../pages/DeploymentStatusPage";
-import GithubCallbackPage from "../pages/GithubCallbackPage";
+
 import DashboardPage from "../pages/DashboardPage";
 import ProjectSetupPage from "../pages/ProjectSetupPage"; // ProjectSetupPage import 추가
 import DeploymentPage from "../pages/DeploymentPage";
@@ -37,10 +37,7 @@ export const router = createBrowserRouter([
             index: true,
             element: <HomePage />,
           },
-          {
-            path: "auth/github/callback",
-            element: <GithubCallbackPage />,
-          },
+
           {
             path: "dashboard",
             element: (

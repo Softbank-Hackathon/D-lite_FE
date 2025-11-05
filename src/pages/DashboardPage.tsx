@@ -35,7 +35,7 @@ const DashboardPage: React.FC = () => {
     setReposLoading(true);
     setReposError(null);
     try {
-      const response = await axios.get<Repository[]>('/api/user/repos');
+      const response = await axios.get<Repository[]>('/api/v1/github/repos');
       setRepos(response.data);
     } catch (error) {
       console.error('Failed to fetch repositories:', error);
