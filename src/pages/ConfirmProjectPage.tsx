@@ -1,93 +1,224 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useProject } from '../contexts/ProjectContext';
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
-  Container,
   Typography,
   Paper,
   Grid,
   Divider,
-} from '@mui/material';
+  useTheme,
+} from "@mui/material";
+import { useProject } from "../contexts/ProjectContext";
+import StepIndicator from "../components/StepIndicator";
+import { commonPaperStyles } from "../styles/commonStyles";
 
-const ConfirmProjectPage: React.FC = () => {
+// --- 1. Props 정의 ---
+interface ConfirmProjectPageProps {
+  stepIndex?: number;
+  totalSteps?: number;
+}
+
+// --- 2. 메인 페이지 컴포넌트 ---
+const ConfirmProjectPage: React.FC<ConfirmProjectPageProps> = ({
+  stepIndex = 3, // 4번째 단계
+  totalSteps = 4,
+}) => {
+  const theme = useTheme();
   const { project } = useProject();
   const navigate = useNavigate();
 
-  // useEffect를 사용하여 프로젝트 정보가 완전한지 확인하고, 그렇지 않으면 적절한 페이지로 리디렉션할 수 있습니다.
-  // 예: if (!project?.roleArn) navigate('/connect');
+  // 프로젝트 정보가 없으면 대시보드로 리디렉션 (임시 주석 처리 해제 시 사용)
+  // useEffect(() => {
+  //   if (!project?.projectName || !project.repo || !project.framework || !project.region || !project.roleArn) {
+  //     navigate("/dashboard");
+  //   }
+  // }, [project, navigate]);
 
   const handleDeploy = () => {
-    // TODO: 배포를 시작하는 API 호출 로직 추가
-    console.log('Deploying project with settings:', project);
-    navigate('/deploy'); // 배포 상태/로그 페이지로 이동
+    // TODO: 실제 배포를 시작하는 API 호출 로직 추가
+    console.log("Deploying project with settings:", project);
+    navigate("/deploy"); // 배포 상태/로그 페이지로 이동
   };
 
   if (!project) {
-    return <p>Loading project details...</p>;
+    return (
+      <Box
+        sx={{
+          backgroundColor: theme.palette.custom.header,
+          py: 2,
+          display: "flex",
+          flexGrow: 1,
+          justifyContent: "center",
+        }}
+      >
+        <Paper elevation={0} sx={commonPaperStyles}>
+          <Typography>Loading project details...</Typography>
+        </Paper>
+      </Box>
+    );
   }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Paper sx={{ p: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Confirm Your Project Settings
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          Please review the settings below before starting the deployment.
-        </Typography>
+    <Box
+      sx={{
+        backgroundColor: theme.palette.custom.header,
+        py: 2,
+        display: "flex",
+        flexGrow: 1,
+        justifyContent: "center",
+      }}
+    >
+      <Paper elevation={0} sx={commonPaperStyles}>
+        {/* 상단 컨텐츠 영역 */}
+        <Box sx={{ flexGrow: 1 }}>
+          {/* 제목 섹션 */}
+          <Box mb={3}>
+            <Typography
+              variant="h4"
+              component="h1"
+              sx={{ fontWeight: "bold", mb: 0.5 }}
+            >
+              5. Confirm Project Settings
+            </Typography>
+            <Typography color="text.secondary">
+              Please review the settings below before starting the deployment.
+            </Typography>
+          </Box>
 
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, sm: 3 }}><Typography variant="subtitle1"><strong>Project Name</strong></Typography></Grid>
-          <Grid size={{ xs: 12, sm: 9 }}><Typography>{project.projectName}</Typography></Grid>
+          {/* 프로젝트 요약 정보 */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid size={{ xs: 12, sm: 3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                Project Name
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 9 }}>
+              <Typography>{project.projectName}</Typography>
+            </Grid>
 
-          <Grid size={{ xs: 12 }}><Divider /></Grid>
+            <Grid size={{ xs: 12 }}>
+              <Divider
+                sx={{ my: 1, borderColor: theme.palette.custom.border }}
+              />
+            </Grid>
 
-          <Grid size={{ xs: 12, sm: 3 }}><Typography variant="subtitle1"><strong>Repository</strong></Typography></Grid>
-          <Grid size={{ xs: 12, sm: 9 }}><Typography>{project.repo?.full_name}</Typography></Grid>
+            <Grid size={{ xs: 12, sm: 3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                Repository
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 9 }}>
+              <Typography>{project.repo?.full_name}</Typography>
+            </Grid>
 
-          <Grid size={{ xs: 12 }}><Divider /></Grid>
+            <Grid size={{ xs: 12 }}>
+              <Divider
+                sx={{ my: 1, borderColor: theme.palette.custom.border }}
+              />
+            </Grid>
 
-          <Grid size={{ xs: 12, sm: 3 }}><Typography variant="subtitle1"><strong>Project Type</strong></Typography></Grid>
-          <Grid size={{ xs: 12, sm: 9 }}><Typography>{project.projectType}</Typography></Grid>
+            <Grid size={{ xs: 12, sm: 3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                Framework
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 9 }}>
+              <Typography>{project.framework}</Typography>
+            </Grid>
 
-          <Grid size={{ xs: 12 }}><Divider /></Grid>
+            <Grid size={{ xs: 12 }}>
+              <Divider
+                sx={{ my: 1, borderColor: theme.palette.custom.border }}
+              />
+            </Grid>
 
-          <Grid size={{ xs: 12, sm: 3 }}><Typography variant="subtitle1"><strong>Framework</strong></Typography></Grid>
-          <Grid size={{ xs: 12, sm: 9 }}><Typography>{project.framework}</Typography></Grid>
+            <Grid size={{ xs: 12, sm: 3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                Region
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 9 }}>
+              <Typography>{project.region}</Typography>
+            </Grid>
 
-          <Grid size={{ xs: 12 }}><Divider /></Grid>
+            <Grid size={{ xs: 12 }}>
+              <Divider
+                sx={{ my: 1, borderColor: theme.palette.custom.border }}
+              />
+            </Grid>
 
-          <Grid size={{ xs: 12, sm: 3 }}><Typography variant="subtitle1"><strong>Region</strong></Typography></Grid>
-          <Grid size={{ xs: 12, sm: 9 }}><Typography>{project.region}</Typography></Grid>
+            <Grid size={{ xs: 12, sm: 3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                AWS Role ARN
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 9 }}>
+              <Typography sx={{ wordBreak: "break-all" }}>
+                {project.roleArn}
+              </Typography>
+            </Grid>
 
-          <Grid size={{ xs: 12 }}><Divider /></Grid>
+            <Grid size={{ xs: 12 }}>
+              <Divider
+                sx={{ my: 1, borderColor: theme.palette.custom.border }}
+              />
+            </Grid>
 
-          <Grid size={{ xs: 12, sm: 3 }}><Typography variant="subtitle1"><strong>AWS Role ARN</strong></Typography></Grid>
-          <Grid size={{ xs: 12, sm: 9 }}><Typography sx={{ wordBreak: 'break-all' }}>{project.roleArn}</Typography></Grid>
-        </Grid>
+            <Grid size={{ xs: 12, sm: 3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                External ID
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 9 }}>
+              <Typography>{project.externalId}</Typography>
+            </Grid>
+          </Grid>
+        </Box>
 
-        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
+        {/* 푸터 섹션 */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mt: 4,
+          }}
+        >
           <Button
-            variant="outlined"
-            color="secondary"
-            size="large"
-            onClick={() => navigate('/connect')} // 이전 단계(ARN 입력)로 돌아가기
+            variant="text"
+            onClick={() => navigate("/connect")}
+            aria-label="Go back"
+            sx={{
+              width: "150px", // 버튼의 고정 너비
+              height: "40px", // 버튼의 고정 높이
+            }}
           >
-            Back
+            &lt; Back
           </Button>
+          <StepIndicator count={totalSteps} current={stepIndex} />
+
           <Button
             variant="contained"
-            color="primary"
-            size="large"
             onClick={handleDeploy}
+            disabled={
+              !project.projectName ||
+              !project.repo ||
+              !project.framework ||
+              !project.region ||
+              !project.roleArn
+            }
+            aria-label="Confirm"
+            sx={{
+              width: "150px", // 버튼의 고정 너비
+              height: "40px", // 버튼의 고정 높이
+            }}
           >
-            Confirm & Deploy
+            Confirm
           </Button>
         </Box>
       </Paper>
-    </Container>
+    </Box>
   );
 };
 

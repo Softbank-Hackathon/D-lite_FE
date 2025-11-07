@@ -11,8 +11,8 @@ import {
   useTheme,
 } from "@mui/material";
 import { useProject } from "../contexts/ProjectContext";
-import StepIndicator from '../components/StepIndicator';
-import { commonPaperStyles } from '../styles/commonStyles';
+import StepIndicator from "../components/StepIndicator";
+import { commonPaperStyles } from "../styles/commonStyles";
 
 // --- 1. Props 정의 ---
 interface AWSConnectionPageProps {
@@ -69,13 +69,25 @@ const AWSConnectionPage: React.FC<AWSConnectionPageProps> = ({
   };
 
   return (
-    <Box sx={{ backgroundColor: theme.palette.custom.header, minHeight: '100vh', py: 2, display: 'flex' }}>
+    <Box
+      sx={{
+        backgroundColor: theme.palette.custom.header,
+        py: 2,
+        display: "flex",
+        flexGrow: 1,
+        justifyContent: "center",
+      }}
+    >
       <Paper elevation={0} sx={commonPaperStyles}>
         {/* 상단 컨텐츠 영역 */}
-        <Box>
+        <Box sx={{ flexGrow: 1 }}>
           {/* 제목 섹션 */}
           <Box mb={3}>
-            <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+            <Typography
+              variant="h4"
+              component="h1"
+              sx={{ fontWeight: "bold", mb: 0.5 }}
+            >
               4. Configure AWS IAM Role
             </Typography>
             <Typography color="text.secondary">
@@ -84,24 +96,46 @@ const AWSConnectionPage: React.FC<AWSConnectionPageProps> = ({
           </Box>
 
           {/* IAM Role 설정 안내 */}
-          <Box sx={{ border: `1px solid ${theme.palette.custom.border}`, p: 3, borderRadius: '12px', mb: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+          <Box
+            sx={{
+              border: `1px solid ${theme.palette.custom.border}`,
+              p: 3,
+              borderRadius: "12px",
+              mb: 3,
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
               Step 1: Configure IAM Role in AWS
             </Typography>
-            <ol style={{ margin: 0, paddingLeft: '20px' }}>
+            <ol style={{ margin: 0, paddingLeft: "20px" }}>
               <li>Sign in to your AWS Console and open the IAM service.</li>
-              <li>Go to <strong>Roles</strong> and click <strong>Create role</strong>.</li>
-              <li>For trusted entity type, select <strong>AWS account</strong>.</li>
-              <li>Under 'An AWS account', select <strong>Another AWS account</strong> and enter the Account ID: <strong>495236580665</strong></li>
-              <li>Under 'Options', check <strong>Require external ID</strong> and enter: <strong>{externalId}</strong></li>
+              <li>
+                Go to <strong>Roles</strong> and click{" "}
+                <strong>Create role</strong>.
+              </li>
+              <li>
+                For trusted entity type, select <strong>AWS account</strong>.
+              </li>
+              <li>
+                Under 'An AWS account', select{" "}
+                <strong>Another AWS account</strong> and enter the Account ID:{" "}
+                <strong>495236580665</strong>
+              </li>
+              <li>
+                Under 'Options', check <strong>Require external ID</strong> and
+                enter: <strong>{externalId}</strong>
+              </li>
               <li>Attach the necessary permissions policies for deployment.</li>
-              <li>Complete the role creation and copy the <strong>Role ARN</strong>.</li>
+              <li>
+                Complete the role creation and copy the{" "}
+                <strong>Role ARN</strong>.
+              </li>
             </ol>
           </Box>
 
           {/* Role ARN 입력 필드 */}
           <Box component="form" noValidate>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
               Step 2: Submit Role ARN
             </Typography>
             <TextField
@@ -114,16 +148,35 @@ const AWSConnectionPage: React.FC<AWSConnectionPageProps> = ({
               value={roleArnInput}
               onChange={(e) => setRoleArnInput(e.target.value)}
               disabled={isLoading}
-              sx={{ mb: 2, borderRadius: '12px' }}
+              sx={{ mb: 2, borderRadius: "12px" }}
             />
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
           </Box>
         </Box>
 
         {/* 푸터 섹션 */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
-          <Button variant="text" onClick={() => navigate('/select-framework')} aria-label="Go back">
-            &lt; Back
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mt: 4,
+          }}
+        >
+          <Button
+            variant="text"
+            onClick={() => navigate("/select-framework")}
+            aria-label="Go back"
+            sx={{
+              width: "150px", // 버튼의 고정 너비
+              height: "40px", // 버튼의 고정 높이
+            }}
+          >
+            &larr; Back
           </Button>
           <StepIndicator count={totalSteps} current={stepIndex} />
           <Button
@@ -131,9 +184,15 @@ const AWSConnectionPage: React.FC<AWSConnectionPageProps> = ({
             onClick={handleNextClick}
             disabled={isLoading || !roleArnInput.trim()}
             aria-label="Go to next step"
-            startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
+            startIcon={
+              isLoading ? <CircularProgress size={20} color="inherit" /> : null
+            }
+            sx={{
+              width: "150px", // 버튼의 고정 너비
+              height: "40px", // 버튼의 고정 높이
+            }}
           >
-            {isLoading ? "Verifying..." : "Next &rarr;"}
+            {isLoading ? "Verifying..." : "Next →"}
           </Button>
         </Box>
       </Paper>

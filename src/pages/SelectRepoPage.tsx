@@ -51,7 +51,15 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
   };
 
   return (
-    <Box sx={{ backgroundColor: theme.palette.custom.header, py: 2, display: 'flex', flexGrow: 1, justifyContent: 'center' }}>
+    <Box
+      sx={{
+        backgroundColor: theme.palette.custom.header,
+        py: 2,
+        display: "flex",
+        flexGrow: 1,
+        justifyContent: "center",
+      }}
+    >
       <Paper elevation={0} sx={commonPaperStyles}>
         {/* 상단 컨텐츠 영역 */}
         <Box sx={{ flexGrow: 1 }}>
@@ -94,6 +102,10 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
             variant="text"
             onClick={() => navigate("/dashboard")}
             aria-label="Go back"
+            sx={{
+              width: "150px", // 버튼의 고정 너비
+              height: "40px", // 버튼의 고정 높이
+            }}
           >
             &larr; Back
           </Button>
@@ -103,6 +115,10 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
             onClick={handleNextClick}
             disabled={!selectedRepo}
             aria-label="Go to next step"
+            sx={{
+              width: "150px", // 버튼의 고정 너비
+              height: "40px", // 버튼의 고정 높이
+            }}
           >
             Next &rarr;
           </Button>

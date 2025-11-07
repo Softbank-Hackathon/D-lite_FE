@@ -25,11 +25,14 @@ const HomePage: React.FC = () => {
 
   const handleStart = () => {
     if (!loading) {
-      if (isAuthenticated) {
-        navigate("/dashboard"); // 로그인 되어 있으면 대시보드로 이동
-      } else {
-        login(); // 로그인 되어 있지 않으면 로그인 프로세스 시작
-      }
+      // 임시로 로그인 여부와 상관없이 대시보드로 이동
+      navigate("/dashboard");
+      // 원래 로직:
+      // if (isAuthenticated) {
+      //   navigate("/dashboard"); // 로그인 되어 있으면 대시보드로 이동
+      // } else {
+      //   login(); // 로그인 되어 있지 않으면 로그인 프로세스 시작
+      // }
     }
   };
 
@@ -53,7 +56,7 @@ const HomePage: React.FC = () => {
           <Typography variant="h2" component="h1" gutterBottom mb={4}>
             {" "}
             {/* Added mb={4} */}
-            Welcome to D-Light!
+            No DevOps, Just Click.
           </Typography>
           <Typography
             variant="h5"
@@ -75,23 +78,13 @@ const HomePage: React.FC = () => {
               onClick={handleStart}
               disabled={loading} // 로딩 중일 때는 버튼 비활성화
             >
-              {loading ? "Loading..." : isAuthenticated ? "Go to Dashboard" : "Get Started"}
+              {loading
+                ? "Loading..."
+                : isAuthenticated
+                ? "Go to Dashboard"
+                : "Get Started"}
             </Button>
           </Box>
-
-          {/* Temporary Test Navigation Buttons */}
-          <Box sx={{ mt: 4, p: 2, border: '1px dashed grey', maxWidth: '80vw' }}>
-            <Typography variant="h6" gutterBottom>Temporary Test Navigation</Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
-              <Button variant="outlined" onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
-              <Button variant="outlined" onClick={() => navigate('/select-repo')}>Go to Select Repo</Button>
-              <Button variant="outlined" onClick={() => navigate('/select-framework')}>Go to Select Framework</Button>
-              <Button variant="outlined" onClick={() => navigate('/connect')}>Go to Connect AWS</Button>
-              <Button variant="outlined" onClick={() => navigate('/confirm-project')}>Go to Confirm Project</Button>
-              <Button variant="outlined" onClick={() => navigate('/deploy')}>Go to Deploy Page</Button>
-            </Box>
-          </Box>
-
         </Box>
       </Box>
 
