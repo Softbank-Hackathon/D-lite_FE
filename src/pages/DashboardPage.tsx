@@ -1,168 +1,118 @@
-import React, { useState } from 'react';
-import { Box, Typography, Button, CircularProgress, Modal, List, ListItem, ListItemText, Paper, IconButton, ListItemButton } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import { useAuth } from '../contexts/AuthContext';
-import { useProject, type Repository } from '../contexts/ProjectContext';
-import axios from '../api/axiosInstance';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Box, Container, Typography, Modal, TextField, Button, Paper
+} from '@mui/material';
 
+// 컴포넌트 임포트
+import Filters, { type FilterValues } from '../components/Filters';
+import DataTable, { type ProjectData } from '../components/DataTable';
+import NewProjectButton from '../components/NewProjectButton';
+import { useProject } from '../contexts/ProjectContext'; // ProjectContext import
 
+// 더미 데이터 정의
+const dummyData: ProjectData[] = [
+  { id: 1, name: "Nelsa web", repository: "my-repository-a", framework: "React", recentDate: "2023-05-25", status: "Completed" },
+  { id: 2, name: "Website builder", repository: "my-repository-b", framework: "Vue", recentDate: "2023-07-13", status: "Failed" },
+  { id: 3, name: "E-commerce Platform", repository: "my-repository-c", framework: "Angular", recentDate: "2023-11-01", status: "Running" },
+  { id: 4, name: "Portfolio Site", repository: "my-repository-d", framework: "React", recentDate: "2022-12-20", status: "Completed" },
+];
 
-const style = {
+// 날짜 포맷팅 유틸
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+};
+
+const modalStyle = {
   position: 'absolute' as 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
   width: 400,
   bgcolor: 'background.paper',
-  border: '2px solid #000',
+  borderRadius: '16px',
   boxShadow: 24,
   p: 4,
 };
 
 const DashboardPage: React.FC = () => {
-  const { user, loading: authLoading } = useAuth();
-  const { project, setProjectRepo, clearProject } = useProject();
   const navigate = useNavigate();
+  const { updateProjectSettings, clearProject } = useProject();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newProjectName, setNewProjectName] = useState('');
+  const [filters, setFilters] = useState<FilterValues>({ framework: 'all', date: 'recent', status: 'all' });
 
-  const [open, setOpen] = useState(false);
-  const [repos, setRepos] = useState<Repository[]>([]);
-  const [reposLoading, setReposLoading] = useState(false);
-  const [reposError, setReposError] = useState<string | null>(null);
-
-  const handleOpen = async () => {
-    setOpen(true);
-    setReposLoading(true);
-    setReposError(null);
-    try {
-      const response = await axios.get<Repository[]>('/api/v1/github/repos');
-      setRepos(response.data);
-    } catch (error) {
-      console.error('Failed to fetch repositories:', error);
-      setReposError('Failed to load repositories. Please try again.');
-    } finally {
-      setReposLoading(false);
-    }
+  const handleOpenModal = () => {
+    clearProject();
+    setNewProjectName('');
+    setIsModalOpen(true);
   };
 
-  const handleClose = () => setOpen(false);
+  const handleCloseModal = () => setIsModalOpen(false);
 
-  const handleSelectRepo = (repo: Repository) => {
-    setProjectRepo(repo);
-    handleClose();
-    navigate('/project-setup'); // <<<--- 수정된 부분: 프로젝트 설정 페이지로 이동
+  const handleConfirmCreation = () => {
+    if (!newProjectName.trim()) return; // 이름이 비어있으면 진행 안함
+    updateProjectSettings({ projectName: newProjectName });
+    handleCloseModal();
+    navigate('/select-repo');
   };
 
-  const handleDeployExistingProject = () => {
-    if (!project) return;
-
-    // 1. 프로젝트 기본 정보 확인
-    if (!project.projectName || !project.projectType || !project.framework) {
-      navigate('/project-setup');
-      return;
-    }
-
-    // 2. AWS 연결 정보 확인
-    if (!project.roleArn || !project.region) {
-      navigate('/connect');
-      return;
-    }
-
-    // 3. 모든 정보가 있으면 배포 확인 페이지로 이동
-    navigate('/deploy');
+  const handleFilterChange = (newFilters: FilterValues) => {
+    setFilters(newFilters);
   };
 
-  if (authLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const filteredAndSortedData = useMemo(() => {
+    let data = [...dummyData];
+    if (filters.framework !== 'all') {
+      data = data.filter(item => item.framework === filters.framework);
+    }
+    if (filters.status !== 'all') {
+      data = data.filter(item => item.status === filters.status);
+    }
+    data.sort((a, b) => {
+      const dateA = new Date(a.recentDate).getTime();
+      const dateB = new Date(b.recentDate).getTime();
+      return filters.date === 'recent' ? dateB - dateA : dateA - dateB;
+    });
+    return data.map(item => ({ ...item, recentDate: formatDate(item.recentDate) }));
+  }, [filters]);
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Dashboard
-      </Typography>
-      {user && (
-        <Typography variant="h6" gutterBottom>
-          Welcome, {user.name || user.login}!
-        </Typography>
-      )}
-
-      <Box sx={{ mt: 4 }}>
-        {project ? (
-          <Paper elevation={3} sx={{ p: 3 }}>
-            <Typography variant="h5" gutterBottom>
-              Current Project:
-            </Typography>
-            <Typography variant="body1">Name: {project.projectName}</Typography>
-            <Typography variant="body1">Repository: {project.repo.full_name}</Typography>
-            <Typography variant="body1">Type: {project.projectType || 'Not set'}</Typography>
-            <Typography variant="body1">Framework: {project.framework || 'Not set'}</Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              sx={{ mt: 2, mr: 2 }}
-              onClick={handleDeployExistingProject}
-            >
-              Deploy This Project
-            </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              sx={{ mt: 2 }}
-              onClick={clearProject}
-            >
-              Clear Project
-            </Button>
-          </Paper>
-        ) : (
-          <Box>
-            <Typography variant="h5" gutterBottom>
-              No project selected.
-            </Typography>
-            <Button variant="contained" color="primary" onClick={handleOpen}>
-              Add New Project
-            </Button>
-          </Box>
-        )}
-      </Box>
+    <Box sx={{ flexGrow: 1 }}>
+      <Container sx={{ py: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+          <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>
+            Project summary
+          </Typography>
+          <Filters onFilterChange={handleFilterChange} />
+        </Box>
+        <DataTable data={filteredAndSortedData} />
+      </Container>
+      <NewProjectButton onClick={handleOpenModal} />
 
       <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        aria-labelledby="create-project-modal-title"
       >
-        <Box sx={style}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography id="modal-modal-title" variant="h6" component="h2">
-              Select a Repository
-            </Typography>
-            <IconButton onClick={handleClose} size="small">
-              <CloseIcon />
-            </IconButton>
+        <Paper sx={modalStyle}>
+          <Typography id="create-project-modal-title" variant="h6" component="h2" sx={{ fontWeight: 'bold', mb: 2 }}>
+            New Project
+          </Typography>
+          <TextField
+            autoFocus
+            fullWidth
+            label="Project Name"
+            value={newProjectName}
+            onChange={(e) => setNewProjectName(e.target.value)}
+            variant="outlined"
+            onKeyPress={(e) => e.key === 'Enter' && handleConfirmCreation()}
+          />
+          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between', gap: 1 }}>
+            <Button variant="text" color="error" onClick={handleCloseModal}>Cancel</Button>
+            <Button variant="text" color="primary" onClick={handleConfirmCreation} disabled={!newProjectName.trim()}>Confirm</Button>
           </Box>
-          {reposLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-              <CircularProgress />
-            </Box>
-          ) : reposError ? (
-            <Typography color="error">{reposError}</Typography>
-          ) : (
-            <List>
-              {repos.map((repo) => (
-                <ListItem key={repo.id} disablePadding>
-                  <ListItemButton onClick={() => handleSelectRepo(repo)}>
-                    <ListItemText primary={repo.full_name} secondary={repo.private ? 'Private' : 'Public'} />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List>
-          )}
-        </Box>
+        </Paper>
       </Modal>
     </Box>
   );

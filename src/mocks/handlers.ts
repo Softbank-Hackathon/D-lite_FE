@@ -16,6 +16,18 @@ const mockRepos = [
 let isAuthenticated = false;
 
 export const handlers = [
+  // GitHub 로그인 시작 요청 (백엔드에서 GitHub로 리디렉션 시뮬레이션)
+  http.get('/api/v1/auth/github/login', () => {
+    // 실제 GitHub 인증 URL을 시뮬레이션합니다.
+    // 이 URL은 백엔드에서 생성되어 리디렉션될 것입니다.
+    const mockGithubAuthUrl = `https://github.com/login/oauth/authorize?client_id=MOCK_CLIENT_ID&redirect_uri=http://localhost:8080/login/oauth2/code/github&scope=repo,user`;
+    return new HttpResponse(null, {
+      status: 302,
+      headers: {
+        'Location': mockGithubAuthUrl,
+      },
+    });
+  }),
 
 
   // GitHub 콜백 처리

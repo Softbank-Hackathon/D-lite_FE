@@ -4,6 +4,7 @@ import axios from '../api/axiosInstance';
 interface User {
   login: string;
   name: string;
+  avatar_url?: string; // GitHub 아바타 URL 추가
   // 필요한 다른 사용자 정보 추가
 }
 
@@ -40,12 +41,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkAuthStatus();
   }, []);
 
-  const login = () => {
-    const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
-    const GITHUB_REDIRECT_URI = import.meta.env.VITE_GITHUB_REDIRECT_URI;
-    const GITHUB_AUTHORIZE_URL = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${GITHUB_REDIRECT_URI}&scope=repo,user`;
-
-    window.location.href = GITHUB_AUTHORIZE_URL;
+  const login = async () => {
+    try {
+      // Make an API call to the backend to initiate GitHub OAuth
+      // The backend will then redirect the browser to GitHub's authorization page
+      await axios.get('/api/v1/auth/github/login');
+      // The browser will automatically follow the redirect from the backend
+    } catch (error) {
+      console.error('Failed to initiate GitHub login:', error);
+      // Handle error, e.g., show a message to the user
+    }
   };
 
   const logout = async () => {

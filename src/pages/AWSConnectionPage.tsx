@@ -1,67 +1,56 @@
-/**
- * @file AWSConnectionPage.tsx
- * @description 클라이언트 측 AWS 서버 권한을 받는 페이지입니다.
- * AWS Role ARN과 리전을 입력받습니다.
- */
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
-  Container,
   TextField,
   Typography,
   Paper,
   CircularProgress,
   Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Grid,
+  useTheme,
 } from "@mui/material";
 import { useProject } from "../contexts/ProjectContext";
+import StepIndicator from '../components/StepIndicator';
+import { commonPaperStyles } from '../styles/commonStyles';
 
-// List of common AWS regions
-const awsRegions = [
-  { value: "ap-northeast-2", label: "ap-northeast-2 (Seoul)" },
-  { value: "us-east-1", label: "us-east-1 (N. Virginia)" },
-  { value: "us-west-2", label: "us-west-2 (Oregon)" },
-  { value: "eu-central-1", label: "eu-central-1 (Frankfurt)" },
-  { value: "ap-southeast-1", label: "ap-southeast-1 (Singapore)" },
-];
+// --- 1. Props 정의 ---
+interface AWSConnectionPageProps {
+  stepIndex?: number;
+  totalSteps?: number;
+}
 
-const AWSConnectionPage: React.FC = () => {
+// --- 2. 메인 페이지 컴포넌트 ---
+const AWSConnectionPage: React.FC<AWSConnectionPageProps> = ({
+  stepIndex = 2, // 3번째 단계
+  totalSteps = 4,
+}) => {
+  const theme = useTheme();
   const { project, updateProjectSettings } = useProject();
   const navigate = useNavigate();
 
-  // externalId는 이 페이지에서 생성되거나 고정값으로 사용됩니다.
-  const externalId = "dlight-external-id-placeholder";
+  const externalId = "dlight-external-id-placeholder"; // 고정값
 
+  const [roleArnInput, setRoleArnInput] = useState(project?.roleArn || "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 프로젝트 정보가 불완전하면 이전 단계로 리디렉션 (임시 주석 처리 해제 시 사용)
   useEffect(() => {
-    if (
+    /* if (
       !project ||
       !project.projectName ||
+      !project.repo ||
       !project.projectType ||
-      !project.framework
+      !project.framework ||
+      !project.region
     ) {
-      // 프로젝트 정보가 불완전하면 대시보드로 리디렉션
-      navigate("/dashboard");
-    }
+      navigate("/select-framework");
+    } */
   }, [project, navigate]);
 
-  const handleSettingChange = (event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
-    const { name, value } = event.target;
-    if (name) {
-      updateProjectSettings({ [name]: value });
-    }
-  };
-
-  const handleConnect = async () => {
-    if (!project?.roleArn?.trim()) {
+  const handleNextClick = async () => {
+    if (!roleArnInput.trim()) {
       setError("Please enter a Role ARN.");
       return;
     }
@@ -69,174 +58,86 @@ const AWSConnectionPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
 
-    // externalId와 region을 컨텍스트에 저장합니다.
-    updateProjectSettings({ 
-      externalId,
-      region: project.region || awsRegions[0].value // 사용자가 지역을 선택하지 않은 경우 기본값 사용
-    });
+    // ProjectContext에 Role ARN과 External ID 저장
+    updateProjectSettings({ roleArn: roleArnInput, externalId });
 
-    // 실제 API 검증 로직이 필요하다면 여기에 추가할 수 있습니다.
-    // 지금은 바로 다음 페이지로 이동합니다.
-    await new Promise((resolve) => setTimeout(resolve, 500)); 
+    // 실제 API 검증 로직이 필요하다면 여기에 추가
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    navigate("/deploy");
+    setIsLoading(false);
+    navigate("/confirm-project"); // 다음 페이지: 최종 확인
   };
 
-  if (!project) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-        }}
-      >
-        <CircularProgress />
-        <Typography>Redirecting to dashboard...</Typography>
-      </Box>
-    );
-  }
-
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Paper sx={{ p: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Connect to AWS
-        </Typography>
+    <Box sx={{ backgroundColor: theme.palette.custom.header, minHeight: '100vh', py: 2, display: 'flex' }}>
+      <Paper elevation={0} sx={commonPaperStyles}>
+        {/* 상단 컨텐츠 영역 */}
+        <Box>
+          {/* 제목 섹션 */}
+          <Box mb={3}>
+            <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+              4. Configure AWS IAM Role
+            </Typography>
+            <Typography color="text.secondary">
+              Follow the steps below to configure your AWS IAM Role.
+            </Typography>
+          </Box>
 
-        <Paper
-          variant="outlined"
-          sx={{ p: 2, mb: 3, backgroundColor: "#f5f5f5" }}
-        >
-          <Typography variant="h6" gutterBottom>
-            Project Summary
-          </Typography>
-          <Grid container spacing={1}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography>
-                <strong>Project Name:</strong> {project.projectName}
-              </Typography>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography>
-                <strong>Repository:</strong> {project.repo.full_name}
-              </Typography>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography>
-                <strong>Project Type:</strong> {project.projectType}
-              </Typography>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography>
-                <strong>Framework:</strong> {project.framework}
-              </Typography>
-            </Grid>
-          </Grid>
-        </Paper>
+          {/* IAM Role 설정 안내 */}
+          <Box sx={{ border: `1px solid ${theme.palette.custom.border}`, p: 3, borderRadius: '12px', mb: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+              Step 1: Configure IAM Role in AWS
+            </Typography>
+            <ol style={{ margin: 0, paddingLeft: '20px' }}>
+              <li>Sign in to your AWS Console and open the IAM service.</li>
+              <li>Go to <strong>Roles</strong> and click <strong>Create role</strong>.</li>
+              <li>For trusted entity type, select <strong>AWS account</strong>.</li>
+              <li>Under 'An AWS account', select <strong>Another AWS account</strong> and enter the Account ID: <strong>495236580665</strong></li>
+              <li>Under 'Options', check <strong>Require external ID</strong> and enter: <strong>{externalId}</strong></li>
+              <li>Attach the necessary permissions policies for deployment.</li>
+              <li>Complete the role creation and copy the <strong>Role ARN</strong>.</li>
+            </ol>
+          </Box>
 
-        <Typography variant="body1" color="text.secondary" gutterBottom>
-          Follow the steps below, then paste the generated Role ARN and select
-          your region to start the deployment.
-        </Typography>
-
-        <Box
-          sx={{ border: "1px solid #ccc", p: 2, borderRadius: 1, mt: 3, mb: 3 }}
-        >
-          <Typography variant="h6">
-            Step 1: Configure IAM Role in AWS
-          </Typography>
-          <ol>
-            <li>Sign in to your AWS Console and open the IAM service.</li>
-            <li>
-              Go to <strong>Roles</strong> and click{" "}
-              <strong>Create role</strong>.
-            </li>
-            <li>
-              For trusted entity type, select <strong>AWS account</strong>.
-            </li>
-            <li>
-              Under 'An AWS account', select{" "}
-              <strong>Another AWS account</strong> and enter the Account ID:{" "}
-              <strong>495236580665</strong>
-            </li>
-            <li>
-              Under 'Options', check <strong>Require external ID</strong> and
-              enter: <strong>{externalId}</strong>
-            </li>
-            <li>Attach the necessary permissions policies for deployment.</li>
-            <li>
-              Complete the role creation and copy the <strong>Role ARN</strong>.
-            </li>
-          </ol>
+          {/* Role ARN 입력 필드 */}
+          <Box component="form" noValidate>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+              Step 2: Submit Role ARN
+            </Typography>
+            <TextField
+              required
+              fullWidth
+              id="roleArn"
+              label="AWS Role ARN"
+              name="roleArn"
+              placeholder="arn:aws:iam::123456789012:role/YourRoleName"
+              value={roleArnInput}
+              onChange={(e) => setRoleArnInput(e.target.value)}
+              disabled={isLoading}
+              sx={{ mb: 2, borderRadius: '12px' }}
+            />
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          </Box>
         </Box>
 
-        <Box component="form" noValidate sx={{ mt: 2 }}>
-          <Typography variant="h6" sx={{ mb: 3 }}>
-            Step 2: Submit Role ARN and Select Region
-          </Typography>
-          <TextField
-            required
-            fullWidth
-            id="roleArn"
-            label="AWS Role ARN"
-            name="roleArn"
-            placeholder="arn:aws:iam::123456789012:role/YourRoleName"
-            value={project.roleArn || ''}
-            onChange={handleSettingChange}
-            disabled={isLoading}
-            sx={{ mb: 3 }}
-          />
-          <FormControl fullWidth required disabled={isLoading} sx={{ mb: 2 }}>
-            <InputLabel id="aws-region-select-label">AWS Region</InputLabel>
-            <Select
-              labelId="aws-region-select-label"
-              id="aws-region-select"
-              name="region" // name 속성 추가
-              value={project.region || awsRegions[0].value}
-              label="AWS Region"
-              onChange={handleSettingChange as any}
-            >
-              {awsRegions.map((region) => (
-                <MenuItem key={region.value} value={region.value}>
-                  {region.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <Box sx={{ minHeight: "50px", mb: 2 }}>
-            {error && <Alert severity="error">{error}</Alert>}
-          </Box>
-
-          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-            <Button
-              variant="outlined"
-              color="secondary"
-              size="large"
-              onClick={() => navigate('/project-setup')}
-            >
-              Back
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              disabled={isLoading}
-              onClick={handleConnect}
-              startIcon={
-                isLoading ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : null
-              }
-            >
-              {isLoading ? "Saving..." : "Next: Deploy"}
-            </Button>
-          </Box>
+        {/* 푸터 섹션 */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
+          <Button variant="text" onClick={() => navigate('/select-framework')} aria-label="Go back">
+            &lt; Back
+          </Button>
+          <StepIndicator count={totalSteps} current={stepIndex} />
+          <Button
+            variant="contained"
+            onClick={handleNextClick}
+            disabled={isLoading || !roleArnInput.trim()}
+            aria-label="Go to next step"
+            startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
+          >
+            {isLoading ? "Verifying..." : "Next &rarr;"}
+          </Button>
         </Box>
       </Paper>
-    </Container>
+    </Box>
   );
 };
 

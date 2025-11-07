@@ -34,7 +34,7 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <Box>
+    <Box sx={{ backgroundColor: theme.palette.custom.header }}>
       {/* Section 1: Hero */}
       <Box
         sx={{
@@ -78,6 +78,20 @@ const HomePage: React.FC = () => {
               {loading ? "Loading..." : isAuthenticated ? "Go to Dashboard" : "Get Started"}
             </Button>
           </Box>
+
+          {/* Temporary Test Navigation Buttons */}
+          <Box sx={{ mt: 4, p: 2, border: '1px dashed grey', maxWidth: '80vw' }}>
+            <Typography variant="h6" gutterBottom>Temporary Test Navigation</Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
+              <Button variant="outlined" onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
+              <Button variant="outlined" onClick={() => navigate('/select-repo')}>Go to Select Repo</Button>
+              <Button variant="outlined" onClick={() => navigate('/select-framework')}>Go to Select Framework</Button>
+              <Button variant="outlined" onClick={() => navigate('/connect')}>Go to Connect AWS</Button>
+              <Button variant="outlined" onClick={() => navigate('/confirm-project')}>Go to Confirm Project</Button>
+              <Button variant="outlined" onClick={() => navigate('/deploy')}>Go to Deploy Page</Button>
+            </Box>
+          </Box>
+
         </Box>
       </Box>
 
