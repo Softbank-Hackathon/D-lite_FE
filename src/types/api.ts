@@ -60,15 +60,16 @@ export type AuthStatusResponse = AuthStatusSuccess | AuthStatusUnauthorized;
 
 /**
  * 사용자 정보
+ * GET /api/users/me 응답 형식
  */
 export interface User {
   id: number;
   githubId: number;
-  username: string;
-  email: string;
-  avatarUrl: string;
+  login: string; // GitHub username
+  email: string | null;
   profileUrl: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 // ============================================

@@ -15,11 +15,11 @@ import type {
 const mockUser: User = {
   id: 1,
   githubId: 123456,
-  username: 'mock-user',
+  login: 'mock-user',
   email: 'mock-user@example.com',
-  avatarUrl: 'https://avatars.githubusercontent.com/u/123456',
   profileUrl: 'https://github.com/mock-user',
   createdAt: '2024-01-01T00:00:00',
+  updatedAt: '2024-01-15T10:30:00',
 };
 
 // 가상 GitHub 레포지토리 목록 (실제 API 응답 형식에 맞춤 - snake_case)
@@ -115,8 +115,8 @@ export const handlers = [
         message: '로그인 성공!',
         user: {
           githubId: mockUser.githubId,
-          login: mockUser.username,
-          avatarUrl: mockUser.avatarUrl,
+          login: mockUser.login,
+          avatarUrl: `https://github.com/${mockUser.login}.png`,
           profileUrl: mockUser.profileUrl,
         },
         apis: {
