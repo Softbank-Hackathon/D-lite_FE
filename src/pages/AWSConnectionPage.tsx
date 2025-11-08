@@ -22,8 +22,8 @@ interface AWSConnectionPageProps {
 
 // --- 2. 메인 페이지 컴포넌트 ---
 const AWSConnectionPage: React.FC<AWSConnectionPageProps> = ({
-  stepIndex = 2, // 3번째 단계
-  totalSteps = 4,
+  stepIndex = 3, // 4번째 단계
+  totalSteps = 5,
 }) => {
   const theme = useTheme();
   const { project, updateProjectSettings } = useProject();
@@ -169,11 +169,11 @@ const AWSConnectionPage: React.FC<AWSConnectionPageProps> = ({
         >
           <Button
             variant="text"
-            onClick={() => navigate("/select-framework")}
+            onClick={() => navigate("/select-region")}
             aria-label="Go back"
             sx={{
-              width: "150px", // 버튼의 고정 너비
-              height: "40px", // 버튼의 고정 높이
+              width: "150px",
+              height: "40px",
             }}
           >
             &larr; Back

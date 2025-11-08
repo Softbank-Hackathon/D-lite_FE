@@ -5,25 +5,12 @@ import HomePage from "../pages/HomePage";
 import DashboardPage from "../pages/DashboardPage";
 import SelectRepoPage from "../pages/SelectRepoPage";
 import SelectFrameworkPage from "../pages/SelectFrameworkPage";
+import SelectRegionPage from "../pages/SelectRegionPage";
 import AWSConnectionPage from "../pages/AWSConnectionPage";
 import ConfirmProjectPage from "../pages/ConfirmProjectPage";
 import DeploymentPage from "../pages/DeploymentPage";
 import DeploymentStatusPage from "../pages/DeploymentStatusPage";
-
-// 인증이 필요한 라우트를 보호하는 컴포넌트 (임시로 비활성화)
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  // const { isAuthenticated, loading } = useAuth();
-
-  // if (loading) {
-  //   return <p>Loading authentication...</p>; // 또는 로딩 스피너
-  // }
-
-  // if (!isAuthenticated) {
-  //   return <Navigate to="/" replace />;
-  // }
-
-  return children;
-};
+import ProtectedRoute from "../components/ProtectedRoute";
 
 export const router = createBrowserRouter([
   {
@@ -48,6 +35,14 @@ export const router = createBrowserRouter([
           {
             path: "select-framework",
             element: <ProtectedRoute><SelectFrameworkPage /></ProtectedRoute>,
+          },
+          {
+            path: "select-framework",
+            element: <ProtectedRoute><SelectFrameworkPage /></ProtectedRoute>,
+          },
+          {
+            path: "select-region",
+            element: <ProtectedRoute><SelectRegionPage /></ProtectedRoute>,
           },
           {
             path: "connect",
