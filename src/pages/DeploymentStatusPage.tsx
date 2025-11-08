@@ -50,78 +50,88 @@ const DeploymentStatusPage: React.FC = () => {
       }}
     >
       <Paper elevation={0} sx={{ ...commonPaperStyles, textAlign: "center" }}>
-        {/* IN_PROGRESS 상태 */}
-        {status === "IN_PROGRESS" && polling && (
-          <>
-            <CircularProgress size={80} sx={{ mb: 3 }} />
-            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
-              Deployment In Progress
-            </Typography>
-            <Typography color="text.secondary">
-              Please wait while we deploy your project...
-            </Typography>
-          </>
-        )}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "100%",
+          }}
+        >
+          {/* IN_PROGRESS 상태 */}
+          {status === "IN_PROGRESS" && polling && (
+            <>
+              <CircularProgress size={80} sx={{ mb: 3 }} />
+              <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+                Deployment In Progress
+              </Typography>
+              <Typography color="text.secondary">
+                Please wait while we deploy your project...
+              </Typography>
+            </>
+          )}
 
-        {/* SUCCESS 상태 */}
-        {status === "SUCCESS" && (
-          <>
-            <CheckCircleIcon
-              sx={{ fontSize: 80, color: "success.main", mb: 3 }}
-            />
-            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
-              Deployment Successful!
-            </Typography>
-            <Typography color="text.secondary" sx={{ mb: 3 }}>
-              Your project has been deployed successfully
-            </Typography>
-            {deploymentUrl && (
-              <Alert severity="success" sx={{ mb: 3, textAlign: "left" }}>
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>Deployment URL:</strong>
-                </Typography>
-                <Link
-                  href={deploymentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  sx={{ wordBreak: "break-all" }}
-                >
-                  {deploymentUrl}
-                </Link>
-              </Alert>
-            )}
-            <Typography variant="body2" color="text.secondary">
-              Redirecting to dashboard in 2 seconds...
-            </Typography>
-          </>
-        )}
+          {/* SUCCESS 상태 */}
+          {status === "SUCCESS" && (
+            <>
+              <CheckCircleIcon
+                sx={{ fontSize: 80, color: "success.main", mb: 3 }}
+              />
+              <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+                Deployment Successful!
+              </Typography>
+              <Typography color="text.secondary" sx={{ mb: 3 }}>
+                Your project has been deployed successfully
+              </Typography>
+              {deploymentUrl && (
+                <Alert severity="success" sx={{ mb: 3, textAlign: "left" }}>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Deployment URL:</strong>
+                  </Typography>
+                  <Link
+                    href={deploymentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{ wordBreak: "break-all" }}
+                  >
+                    {deploymentUrl}
+                  </Link>
+                </Alert>
+              )}
+              <Typography variant="body2" color="text.secondary">
+                Redirecting to dashboard in 2 seconds...
+              </Typography>
+            </>
+          )}
 
-        {/* FAILED 상태 */}
-        {status === "FAILED" && (
-          <>
-            <ErrorIcon sx={{ fontSize: 80, color: "error.main", mb: 3 }} />
-            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
-              Deployment Failed
-            </Typography>
-            <Typography color="text.secondary" sx={{ mb: 3 }}>
-              An error occurred during deployment
-            </Typography>
-            {errorMessage && (
-              <Alert severity="error" sx={{ mb: 3, textAlign: "left" }}>
-                <Typography variant="body2">
-                  <strong>Error:</strong> {errorMessage}
-                </Typography>
-              </Alert>
-            )}
-            <Button
-              variant="contained"
-              onClick={handleGoToDashboard}
-              sx={{ mt: 2 }}
-            >
-              Go to Dashboard
-            </Button>
-          </>
-        )}
+          {/* FAILED 상태 */}
+          {status === "FAILED" && (
+            <>
+              <ErrorIcon sx={{ fontSize: 80, color: "error.main", mb: 3 }} />
+              <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+                Deployment Failed
+              </Typography>
+              <Typography color="text.secondary" sx={{ mb: 3 }}>
+                An error occurred during deployment
+              </Typography>
+              {errorMessage && (
+                <Alert severity="error" sx={{ mb: 3, textAlign: "left" }}>
+                  <Typography variant="body2">
+                    <strong>Error:</strong> {errorMessage}
+                  </Typography>
+                </Alert>
+              )}
+              <Button
+                variant="contained"
+                onClick={handleGoToDashboard}
+                sx={{ mt: 2 }}
+              >
+                Go to Dashboard
+              </Button>
+            </>
+          )}
+        </Box>
       </Paper>
     </Box>
   );
