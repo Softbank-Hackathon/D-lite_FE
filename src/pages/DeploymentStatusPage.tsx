@@ -3,7 +3,7 @@
  * @description 배포 상황을 나타내기 위한 페이지입니다.
  * 1초마다 배포 상태를 폴링하며 IN_PROGRESS, SUCCESS, FAILED 상태를 처리합니다.
  */
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Box,
@@ -17,78 +17,22 @@ import {
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
-import axios from "../api/axiosInstance";
+
+import { useDeploymentPolling } from "../hooks/useDeploymentPolling";
 import { commonPaperStyles } from "../styles/commonStyles";
-import type { DeploymentStatusResponse } from "../types/deployment";
 
 const DeploymentStatusPage: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const deploymentId = searchParams.get("deploymentId");
-  const error = searchParams.get("error");
 
-  const [status, setStatus] = useState<"IN_PROGRESS" | "SUCCESS" | "FAILED">(
-    "IN_PROGRESS"
-  );
-  const [deploymentUrl, setDeploymentUrl] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [polling, setPolling] = useState(true);
-
-  useEffect(() => {
-    // URL에 에러 파라미터가 있으면 즉시 실패 상태로 표시
-    if (error) {
-      setStatus("FAILED");
-      setErrorMessage("Failed to start deployment. Please try again.");
-      setPolling(false);
-      return;
-    }
-
-    if (!deploymentId) {
-      setStatus("FAILED");
-      setErrorMessage("No deployment ID provided");
-      setPolling(false);
-      return;
-    }
-
-    // 1초마다 배포 상태 확인
-    const pollInterval = setInterval(async () => {
-      try {
-        const response = await axios.get<DeploymentStatusResponse>(
-          `/api/v1/deployments/${deploymentId}/status`
-        );
-
-        const { status: newStatus, deploymentUrl: url, errorMessage: errMsg } = response.data;
-
-        setStatus(newStatus);
-
-        if (newStatus === "SUCCESS") {
-          setDeploymentUrl(url || null);
-          setPolling(false);
-          clearInterval(pollInterval);
-
-          // 2초 후 자동으로 Dashboard로 이동
-          setTimeout(() => {
-            navigate("/dashboard");
-          }, 2000);
-        } else if (newStatus === "FAILED") {
-          setErrorMessage(errMsg || "Deployment failed");
-          setPolling(false);
-          clearInterval(pollInterval);
-        }
-      } catch (err) {
-        console.error("Failed to fetch deployment status:", err);
-        setStatus("FAILED");
-        setErrorMessage("Failed to fetch deployment status");
-        setPolling(false);
-        clearInterval(pollInterval);
-      }
-    }, 1000); // 1초마다 폴링
-
-    return () => {
-      clearInterval(pollInterval);
-    };
-  }, [deploymentId, error, navigate]);
+  // 커스텀 훅을 사용하여 배포 상태 폴링
+  const { status, deploymentUrl, errorMessage, polling } = useDeploymentPolling({
+    deploymentId: searchParams.get("deploymentId"),
+    errorParam: searchParams.get("error"),
+    autoRedirect: true,
+    redirectDelay: 2000,
+  });
 
   const handleGoToDashboard = () => {
     navigate("/dashboard");
