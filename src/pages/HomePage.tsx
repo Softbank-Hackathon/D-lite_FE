@@ -21,7 +21,7 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
-  const { login, isAuthenticated, loading } = useAuth(); // useAuth 훅 사용
+  const { isAuthenticated, loading } = useAuth(); // useAuth 훅 사용
 
   const handleStart = () => {
     if (!loading) {

@@ -6,6 +6,7 @@ import DashboardPage from "../pages/DashboardPage";
 import SelectRepoPage from "../pages/SelectRepoPage";
 import SelectFrameworkPage from "../pages/SelectFrameworkPage";
 import SelectRegionPage from "../pages/SelectRegionPage";
+import SelectFrameworkPageNew from "../pages/SelectFrameworkPage-new";
 import AWSConnectionPage from "../pages/AWSConnectionPage";
 import ConfirmProjectPage from "../pages/ConfirmProjectPage";
 import DeploymentPage from "../pages/DeploymentPage";
@@ -26,39 +27,59 @@ export const router = createBrowserRouter([
           },
           {
             path: "dashboard",
-            element: <ProtectedRoute><DashboardPage /></ProtectedRoute>,
+            element: (
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "select-repo",
-            element: <ProtectedRoute><SelectRepoPage /></ProtectedRoute>,
+            element: (
+              <ProtectedRoute>
+                <SelectRepoPage />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "select-framework",
-            element: <ProtectedRoute><SelectFrameworkPage /></ProtectedRoute>,
-          },
-          {
-            path: "select-framework",
-            element: <ProtectedRoute><SelectFrameworkPage /></ProtectedRoute>,
-          },
-          {
-            path: "select-region",
-            element: <ProtectedRoute><SelectRegionPage /></ProtectedRoute>,
+            element: (
+              <ProtectedRoute>
+                <SelectFrameworkPage />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "connect",
-            element: <ProtectedRoute><AWSConnectionPage /></ProtectedRoute>,
+            element: (
+              <ProtectedRoute>
+                <AWSConnectionPage />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "confirm-project",
-            element: <ProtectedRoute><ConfirmProjectPage /></ProtectedRoute>,
+            element: (
+              <ProtectedRoute>
+                <ConfirmProjectPage />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "status",
-            element: <ProtectedRoute><DeploymentStatusPage /></ProtectedRoute>,
+            element: (
+              <ProtectedRoute>
+                <DeploymentStatusPage />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "deploy",
-            element: <ProtectedRoute><DeploymentPage /></ProtectedRoute>,
+            element: (
+              <ProtectedRoute>
+                <DeploymentPage />
+              </ProtectedRoute>
+            ),
           },
         ],
       },
