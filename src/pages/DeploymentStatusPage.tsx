@@ -9,7 +9,6 @@ import {
   Box,
   Paper,
   Typography,
-  CircularProgress,
   Button,
   Alert,
   Link,
@@ -20,6 +19,7 @@ import ErrorIcon from "@mui/icons-material/Error";
 
 import { useDeploymentPolling } from "../hooks/useDeploymentPolling";
 import { commonPaperStyles } from "../styles/commonStyles";
+import HamsterWheel from "../components/HamsterWheel";
 
 const DeploymentStatusPage: React.FC = () => {
   const theme = useTheme();
@@ -62,7 +62,7 @@ const DeploymentStatusPage: React.FC = () => {
           {/* IN_PROGRESS 상태 */}
           {status === "IN_PROGRESS" && polling && (
             <>
-              <CircularProgress size={80} sx={{ mb: 3 }} />
+              <HamsterWheel />
               <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
                 Deployment In Progress
               </Typography>
