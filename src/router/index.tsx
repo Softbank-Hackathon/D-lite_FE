@@ -10,6 +10,7 @@ import AWSConnectionPage from "../pages/AWSConnectionPage";
 import ConfirmProjectPage from "../pages/ConfirmProjectPage";
 import DeploymentPage from "../pages/DeploymentPage";
 import DeploymentStatusPage from "../pages/DeploymentStatusPage";
+import ApiTestPage from "../pages/ApiTestPage";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -85,6 +86,14 @@ export const router = createBrowserRouter([
             element: (
               <ProtectedRoute>
                 <DeploymentPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "test",
+            element: (
+              <ProtectedRoute>
+                <ApiTestPage />
               </ProtectedRoute>
             ),
           },

@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
 import axios from '../api/axiosInstance';
-import type { AuthStatusResponse, User } from '../types/api';
+import type { User } from '../types/api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -21,30 +21,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        // 인증 상태 확인 API 호출
-        const response = await axios.get<AuthStatusResponse>('/');
+        // 사용자 정보 조회로 인증 상태 확인 (GET /는 프록시 불가능하므로)
+        const userResponse = await axios.get<User>('/api/users/me');
         
-        if (response.data.status === 'success') {
+        if (userResponse.data) {
           setIsAuthenticated(true);
-          
-          // 사용자 상세 정보 조회
-          try {
-            const userResponse = await axios.get<User>('/api/users/me');
-            setUser(userResponse.data);
-          } catch (userError) {
-            console.error('Failed to fetch user info:', userError);
-            // 사용자 정보는 실패해도 인증 상태는 유지
-            // 기본 정보만 사용
-            setUser({
-              id: 0,
-              githubId: response.data.user.githubId,
-              username: response.data.user.login,
-              email: '',
-              avatarUrl: response.data.user.avatarUrl,
-              profileUrl: response.data.user.profileUrl,
-              createdAt: new Date().toISOString(),
-            });
-          }
+          setUser(userResponse.data);
         } else {
           setIsAuthenticated(false);
           setUser(null);
@@ -63,8 +45,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = () => {
     // GitHub OAuth 로그인 페이지로 리다이렉트
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://54.180.117.76:8080';
-    window.location.href = `${baseUrl}/oauth2/authorization/github`;
+    // 프록시 사용 시 상대 경로
+    window.location.href = '/oauth2/authorization/github';
   };
 
   const logout = async () => {

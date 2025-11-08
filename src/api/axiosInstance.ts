@@ -1,7 +1,8 @@
 import axios, { isAxiosError } from 'axios';
 
 // 환경 변수에서 API Base URL 가져오기
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://54.180.117.76:8080';
+// 프록시 사용 시 빈 문자열, 프록시 미사용 시 전체 URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 // 새로운 Axios 인스턴스 생성
 const axiosInstance = axios.create({
@@ -47,7 +48,11 @@ axiosInstance.interceptors.response.use(
       if (error.response.status === 401) {
         console.warn('[Auth] 401 Unauthorized - Redirecting to GitHub OAuth login');
         // GitHub OAuth 로그인 페이지로 리다이렉트
-        window.location.href = `${API_BASE_URL}/oauth2/authorization/github`;
+        // 프록시 사용 시 상대 경로, 미사용 시 절대 경로
+        const oauthUrl = API_BASE_URL 
+          ? `${API_BASE_URL}/oauth2/authorization/github`
+          : '/oauth2/authorization/github';
+        window.location.href = oauthUrl;
       }
     } else if (error.request) {
       // 요청이 이루어졌으나 응답을 받지 못했습니다.
