@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Paper, Typography, Button, useTheme } from "@mui/material";
 
@@ -40,13 +40,26 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
   // 커스텀 훅 사용: 레포지토리 검색 필터링
   const filteredRepos = useSearchFilter(dummyRepos, searchQuery, "fullName");
 
+  // 선택된 레포지토리에서 owner/repo 추출
+  const repoIdentifier = useMemo(() => {
+    if (!selectedRepo) return null;
+    
+    const parts = selectedRepo.fullName.split("/");
+    if (parts.length !== 2) return null;
+    
+    return {
+      owner: parts[0],
+      repo: parts[1],
+    };
+  }, [selectedRepo]);
+
   // 커스텀 훅 사용: 브랜치 로딩
   const {
     branches,
     loading: loadingBranches,
     selectedBranch,
     setSelectedBranch,
-  } = useBranchLoader(selectedRepo?.id || null);
+  } = useBranchLoader(repoIdentifier);
 
   const handleRepoSelect = (repo: Repo) => {
     setSelectedRepo(repo);
@@ -54,13 +67,32 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
 
   const handleNextClick = () => {
     if (selectedRepo && selectedBranch) {
-      // Repository 타입을 ProjectContext의 Repository에 맞게 변환
+      const ownerName = selectedRepo.fullName.split("/")[0] || "unknown";
+      const repoName = selectedRepo.fullName.split("/")[1] || selectedRepo.fullName;
+      
+      // Repository 타입을 ProjectContext의 GithubRepository에 맞게 변환
       const repository = {
         id: selectedRepo.id,
-        name: selectedRepo.fullName.split("/")[1] || selectedRepo.fullName,
+        name: repoName,
         full_name: selectedRepo.fullName,
         private: selectedRepo.isPrivate,
+        description: null,
         html_url: `https://github.com/${selectedRepo.fullName}`,
+        clone_url: `https://github.com/${selectedRepo.fullName}.git`,
+        ssh_url: `git@github.com:${selectedRepo.fullName}.git`,
+        default_branch: selectedBranch.name,
+        owner: {
+          login: ownerName,
+          avatar_url: "",
+          html_url: `https://github.com/${ownerName}`,
+        },
+        pushed_at: new Date().toISOString(),
+        language: null,
+        stargazers_count: 0,
+        watchers_count: 0,
+        forks_count: 0,
+        createdAt: null,
+        updatedAt: null,
       };
 
       setProjectRepo(repository);

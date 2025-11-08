@@ -1,8 +1,16 @@
 import axios, { isAxiosError } from 'axios';
 
+// 환경 변수에서 API Base URL 가져오기
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://54.180.117.76:8080';
+
 // 새로운 Axios 인스턴스 생성
 const axiosInstance = axios.create({
-  // baseURL, timeout 등 기본 설정이 필요하다면 여기에 추가
+  baseURL: API_BASE_URL,
+  timeout: 30000, // 30초 타임아웃
+  withCredentials: true, // JSESSIONID 쿠키 포함을 위해 필수
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 // 요청 인터셉터
@@ -34,6 +42,13 @@ axiosInstance.interceptors.response.use(
         `[API Response Error] ${error.response.status} ${error.response.config.method?.toUpperCase()} ${error.response.config.url}`,
         error.response.data
       );
+
+      // 401 Unauthorized 에러 처리 - 로그인 페이지로 리다이렉트
+      if (error.response.status === 401) {
+        console.warn('[Auth] 401 Unauthorized - Redirecting to GitHub OAuth login');
+        // GitHub OAuth 로그인 페이지로 리다이렉트
+        window.location.href = `${API_BASE_URL}/oauth2/authorization/github`;
+      }
     } else if (error.request) {
       // 요청이 이루어졌으나 응답을 받지 못했습니다.
       console.error('[API Response Error] No response received', error.request);

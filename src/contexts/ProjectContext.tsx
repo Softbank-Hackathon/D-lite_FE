@@ -1,10 +1,12 @@
 import { createContext, useContext, useState, type ReactNode, useCallback } from 'react';
 
+import type { GithubRepository } from '../types/api';
+
 // --- Constants for project options ---
 // eslint-disable-next-line react-refresh/only-export-components
 export const FRAMEWORK_OPTIONS = [
   'React',
-  'Vue',
+  'Vue.js',
   'Angular',
   'Next.js',
   'SvelteKit',
@@ -17,13 +19,8 @@ export const PROJECT_TYPE_OPTIONS = {
 };
 
 // --- Interfaces for project data ---
-export interface Repository {
-  id: number;
-  name: string;
-  full_name: string;
-  private: boolean;
-  html_url: string;
-}
+// Repository 타입은 api.ts에서 import
+export type Repository = GithubRepository;
 
 export interface ProjectSettings {
   projectName: string;
