@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box, Container, Typography, Modal, TextField, Button, Paper
@@ -8,7 +8,8 @@ import {
 import Filters, { type FilterValues } from '../components/Filters';
 import DataTable, { type ProjectData } from '../components/DataTable';
 import NewProjectButton from '../components/NewProjectButton';
-import { useProject } from '../contexts/ProjectContext'; // ProjectContext import
+import { useProject } from '../contexts/ProjectContext';
+import { useDataFilter } from '../hooks/useDataFilter';
 
 // 더미 데이터 정의
 const dummyData: ProjectData[] = [
@@ -58,11 +59,6 @@ const dummyData: ProjectData[] = [
   },
 ];
 
-// 날짜 포맷팅 유틸
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-};
-
 const modalStyle = {
   position: 'absolute' as const,
   top: '50%',
@@ -101,21 +97,8 @@ const DashboardPage: React.FC = () => {
     setFilters(newFilters);
   };
 
-  const filteredAndSortedData = useMemo(() => {
-    let data = [...dummyData];
-    if (filters.framework !== 'all') {
-      data = data.filter(item => item.framework === filters.framework);
-    }
-    if (filters.status !== 'all') {
-      data = data.filter(item => item.status === filters.status);
-    }
-    data.sort((a, b) => {
-      const dateA = new Date(a.recentDate).getTime();
-      const dateB = new Date(b.recentDate).getTime();
-      return filters.date === 'recent' ? dateB - dateA : dateA - dateB;
-    });
-    return data.map(item => ({ ...item, recentDate: formatDate(item.recentDate) }));
-  }, [filters]);
+  // 커스텀 훅 사용: 데이터 필터링 및 정렬
+  const filteredAndSortedData = useDataFilter(dummyData, filters);
 
   return (
     <Box sx={{ flexGrow: 1 }}>

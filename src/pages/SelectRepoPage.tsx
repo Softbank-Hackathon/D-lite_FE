@@ -1,15 +1,16 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Paper, Typography, Button, useTheme } from "@mui/material";
 
 // 컴포넌트 임포트
 import RepoSearchInput from "../components/RepoSearchInput";
 import RepoList, { type Repo } from "../components/RepoList";
-import BranchList, { type Branch } from "../components/BranchList";
+import BranchList from "../components/BranchList";
 import StepIndicator from "../components/StepIndicator";
 import { useProject } from "../contexts/ProjectContext";
 import { commonPaperStyles } from "../styles/commonStyles";
-import axios from "../api/axiosInstance";
+import { useSearchFilter } from "../hooks/useSearchFilter";
+import { useBranchLoader } from "../hooks/useBranchLoader";
 
 // --- 1. 더미 데이터 ---
 const dummyRepos: Repo[] = [
@@ -35,51 +36,17 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
   const { setProjectRepo, updateProjectSettings } = useProject();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null);
-  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [loadingBranches, setLoadingBranches] = useState(false);
 
-  const filteredRepos = useMemo(() => {
-    if (!searchQuery) {
-      return dummyRepos;
-    }
-    return dummyRepos.filter((repo) =>
-      repo.fullName.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery]);
+  // 커스텀 훅 사용: 레포지토리 검색 필터링
+  const filteredRepos = useSearchFilter(dummyRepos, searchQuery, "fullName");
 
-  // 레포 선택 시 브랜치 목록 가져오기
-  useEffect(() => {
-    if (selectedRepo) {
-      setLoadingBranches(true);
-      setSelectedBranch(null);
-      setBranches([]);
-
-      // API 호출로 브랜치 목록 가져오기
-      axios
-        .get(`/api/v1/github/repos/${selectedRepo.id}/branches`)
-        .then((response) => {
-          setBranches(response.data);
-        })
-        .catch((error) => {
-          console.error("Failed to fetch branches:", error);
-          setBranches([]);
-        })
-        .finally(() => {
-          setLoadingBranches(false);
-        });
-    } else {
-      setBranches([]);
-      setSelectedBranch(null);
-    }
-  }, [selectedRepo]);
+  // 커스텀 훅 사용: 브랜치 로딩
+  const { branches, loading: loadingBranches, selectedBranch, setSelectedBranch } = useBranchLoader(
+    selectedRepo?.id || null
+  );
 
   const handleRepoSelect = (repo: Repo) => {
     setSelectedRepo(repo);
-  };
-
-  const handleBranchSelect = (branch: Branch) => {
-    setSelectedBranch(branch);
   };
 
   const handleNextClick = () => {
@@ -166,8 +133,6 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
                   variant="text"
                   onClick={() => {
                     setSelectedRepo(null);
-                    setSelectedBranch(null);
-                    setBranches([]);
                   }}
                   size="small"
                 >
@@ -186,7 +151,7 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
                 <BranchList
                   branches={branches}
                   selectedBranch={selectedBranch?.name || null}
-                  onSelect={handleBranchSelect}
+                  onSelect={setSelectedBranch}
                   loading={loadingBranches}
                 />
               </Box>
