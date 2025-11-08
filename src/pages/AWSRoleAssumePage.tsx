@@ -33,7 +33,7 @@ const AWSRoleAssumePage: React.FC = () => {
 
   useEffect(() => {
     if (!isLoading) {
-      const timer1 = setTimeout(() => setShowWelcome(true), 100);
+      const timer1 = setTimeout(() => setShowWelcome(true), 0);
       const timer2 = setTimeout(() => setShowText(true), 2800);
       const timer3 = setTimeout(() => setShowButton(true), 4800);
 
@@ -64,7 +64,7 @@ const AWSRoleAssumePage: React.FC = () => {
         <CircularProgress />
       ) : (
         <>
-          <Fade in={showWelcome} timeout={2000}>
+          <Fade in={showWelcome} timeout={1000}>
             <Typography
               variant="h3"
               component="h1"
