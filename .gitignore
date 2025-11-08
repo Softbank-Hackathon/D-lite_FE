@@ -26,3 +26,10 @@ dist-ssr
 #환경 변수
 .env
 .env.development
+
+# Temporary documentation / research notes
+GEMINI.md
+requirements.md
+temp.md
+references
+.github/copilot-instructions.md
