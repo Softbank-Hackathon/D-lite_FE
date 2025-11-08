@@ -1,15 +1,12 @@
 import React from "react";
 import { Box, List, ListItemButton, Typography, useTheme } from "@mui/material";
 
-export interface Branch {
-  name: string;
-  sha?: string;
-}
+import type { GithubBranch } from "../types/api";
 
 interface BranchListProps {
-  branches: Branch[];
+  branches: GithubBranch[];
   selectedBranch: string | null;
-  onSelect: (branch: Branch) => void;
+  onSelect: (branch: GithubBranch) => void;
   loading?: boolean;
 }
 

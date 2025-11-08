@@ -50,10 +50,12 @@ const DeploymentPage: React.FC = () => {
 
       try {
         const response = await axios.post(
-          "/api/v1/deployments",
+          "/api/v1/deployments/deployment-project",
           deploymentData
         );
-        const { deploymentId } = response.data;
+        // API 응답 형식: { message, result, errorCode, success }
+        // result에 deploymentId가 들어있음
+        const deploymentId = response.data.result;
 
         // 배포 상태 페이지로 이동
         navigate(`/status?deploymentId=${deploymentId}`);

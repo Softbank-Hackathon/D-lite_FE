@@ -6,7 +6,6 @@ import DashboardPage from "../pages/DashboardPage";
 import SelectRepoPage from "../pages/SelectRepoPage";
 import SelectFrameworkPage from "../pages/SelectFrameworkPage";
 import SelectRegionPage from "../pages/SelectRegionPage";
-import SelectFrameworkPageNew from "../pages/SelectFrameworkPage-new";
 import AWSConnectionPage from "../pages/AWSConnectionPage";
 import ConfirmProjectPage from "../pages/ConfirmProjectPage";
 import DeploymentPage from "../pages/DeploymentPage";
@@ -46,14 +45,6 @@ export const router = createBrowserRouter([
             element: (
               <ProtectedRoute>
                 <SelectFrameworkPage />
-              </ProtectedRoute>
-            ),
-          },
-          {
-            path: "select-framework-new",
-            element: (
-              <ProtectedRoute>
-                <SelectFrameworkPageNew />
               </ProtectedRoute>
             ),
           },

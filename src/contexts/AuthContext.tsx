@@ -1,12 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import axios from '../api/axiosInstance';
 
-interface User {
-  login: string;
-  name: string;
-  avatar_url?: string; // GitHub 아바타 URL 추가
-  // 필요한 다른 사용자 정보 추가
-}
+import axios from '../api/axiosInstance';
+import type { AuthStatusResponse, User } from '../types/api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -14,7 +9,6 @@ interface AuthContextType {
   login: () => void;
   logout: () => void;
   loading: boolean;
-  handleLoginSuccess: (user: User) => void; // handleLoginSuccess 추가
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,30 +21,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await axios.get('/api/v1/auth/status');
-        if (response.data.isAuthenticated) {
+        // 인증 상태 확인 API 호출
+        const response = await axios.get<AuthStatusResponse>('/');
+        
+        if (response.data.status === 'success') {
           setIsAuthenticated(true);
-          setUser(response.data.user);
+          
+          // 사용자 상세 정보 조회
+          try {
+            const userResponse = await axios.get<User>('/api/users/me');
+            setUser(userResponse.data);
+          } catch (userError) {
+            console.error('Failed to fetch user info:', userError);
+            // 사용자 정보는 실패해도 인증 상태는 유지
+            // 기본 정보만 사용
+            setUser({
+              id: 0,
+              githubId: response.data.user.githubId,
+              username: response.data.user.login,
+              email: '',
+              avatarUrl: response.data.user.avatarUrl,
+              profileUrl: response.data.user.profileUrl,
+              createdAt: new Date().toISOString(),
+            });
+          }
+        } else {
+          setIsAuthenticated(false);
+          setUser(null);
         }
       } catch (error) {
         console.error('Failed to check auth status:', error);
+        setIsAuthenticated(false);
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
+    
     checkAuthStatus();
   }, []);
 
-  const login = async () => {
-    try {
-      // Make an API call to the backend to initiate GitHub OAuth
-      // The backend will then redirect the browser to GitHub's authorization page
-      await axios.get('/api/v1/auth/github/login');
-      // The browser will automatically follow the redirect from the backend
-    } catch (error) {
-      console.error('Failed to initiate GitHub login:', error);
-      // Handle error, e.g., show a message to the user
-    }
+  const login = () => {
+    // GitHub OAuth 로그인 페이지로 리다이렉트
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://54.180.117.76:8080';
+    window.location.href = `${baseUrl}/oauth2/authorization/github`;
   };
 
   const logout = async () => {
@@ -63,18 +77,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const handleLoginSuccess = (userData: User) => {
-    setIsAuthenticated(true);
-    setUser(userData);
-  };
-
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading, handleLoginSuccess }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
