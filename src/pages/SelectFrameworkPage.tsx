@@ -5,17 +5,12 @@ import {
   Paper,
   Typography,
   Button,
-  Grid,
   List,
   ListItemButton,
-  Select,
-  MenuItem,
-  FormControl,
   useTheme,
 } from "@mui/material";
-import type { SelectChangeEvent } from "@mui/material/Select";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import StepIndicator from "../components/StepIndicator"; // StepIndicator 컴포넌트 재사용
+import StepIndicator from "../components/StepIndicator";
 import { useProject } from "../contexts/ProjectContext";
 import { commonPaperStyles } from "../styles/commonStyles";
 
@@ -26,13 +21,6 @@ const FRAMEWORK_OPTIONS = [
   "Vanilla JS",
   "Angular",
   "Svelte",
-];
-const REGION_OPTIONS = [
-  "ap-northeast-2 (Seoul)",
-  "ap-northeast-1 (Tokyo)",
-  "us-east-1 (N. Virginia)",
-  "us-west-2 (Oregon)",
-  "eu-central-1 (Frankfurt)",
 ];
 
 // --- 2. Props 정의 ---
@@ -84,39 +72,11 @@ const FrameworkSelector: React.FC<{
   );
 };
 
-// 지역 선택기
-const RegionSelector: React.FC<{
-  options: string[];
-  selectedValue: string | null;
-  onSelect: (event: SelectChangeEvent<string>) => void;
-}> = ({ options, selectedValue, onSelect }) => {
-  return (
-    <FormControl fullWidth>
-      <Select
-        value={selectedValue || ""}
-        onChange={onSelect}
-        displayEmpty
-        aria-label="Select a region"
-        sx={{ height: "48px", borderRadius: "12px" }}
-      >
-        <MenuItem disabled value="">
-          <em>Select a region…</em>
-        </MenuItem>
-        {options.map((option) => (
-          <MenuItem key={option} value={option}>
-            {option}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
-};
-
 // --- 4. 메인 페이지 컴포넌트 ---
 
 const SelectFrameworkPage: React.FC<SelectFrameworkPageProps> = ({
   stepIndex = 1, // 2번째 단계
-  totalSteps = 4,
+  totalSteps = 5,
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -124,15 +84,13 @@ const SelectFrameworkPage: React.FC<SelectFrameworkPageProps> = ({
   const [selectedFramework, setSelectedFramework] = useState<string | null>(
     null
   );
-  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
 
   const handleNextClick = () => {
-    if (selectedFramework && selectedRegion) {
+    if (selectedFramework) {
       updateProjectSettings({
         framework: selectedFramework,
-        region: selectedRegion,
       });
-      navigate("/connect");
+      navigate("/select-region");
     }
   };
 
@@ -149,50 +107,24 @@ const SelectFrameworkPage: React.FC<SelectFrameworkPageProps> = ({
       <Paper elevation={0} sx={commonPaperStyles}>
         {/* 상단 컨텐츠 영역 */}
         <Box sx={{ flexGrow: 1 }}>
-          <Grid container spacing={{ xs: 4, md: 8 }}>
-            {/* 좌측 컬럼 */}
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Box>
-                <Typography
-                  variant="h5"
-                  component="h2"
-                  sx={{ fontWeight: "bold", mb: 0.5 }}
-                >
-                  2. Select Framework
-                </Typography>
-                <Typography color="text.secondary" sx={{ mb: 3 }}>
-                  Select the framework of your project, between React, Vue.js,
-                  Angular, Vanilla JS, Svelte
-                </Typography>
-                <FrameworkSelector
-                  options={FRAMEWORK_OPTIONS}
-                  selectedValue={selectedFramework}
-                  onSelect={setSelectedFramework}
-                />
-              </Box>
-            </Grid>
-
-            {/* 우측 컬럼 */}
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Box>
-                <Typography
-                  variant="h5"
-                  component="h2"
-                  sx={{ fontWeight: "bold", mb: 0.5 }}
-                >
-                  3. Select Region
-                </Typography>
-                <Typography color="text.secondary" sx={{ mb: 3 }}>
-                  Select the region where your AWS server will run.
-                </Typography>
-                <RegionSelector
-                  options={REGION_OPTIONS}
-                  selectedValue={selectedRegion}
-                  onSelect={(e) => setSelectedRegion(e.target.value)}
-                />
-              </Box>
-            </Grid>
-          </Grid>
+          <Box>
+            <Typography
+              variant="h5"
+              component="h2"
+              sx={{ fontWeight: "bold", mb: 0.5 }}
+            >
+              2. Select Framework
+            </Typography>
+            <Typography color="text.secondary" sx={{ mb: 3 }}>
+              Select the framework of your project, between React, Vue.js,
+              Angular, Vanilla JS, Svelte
+            </Typography>
+            <FrameworkSelector
+              options={FRAMEWORK_OPTIONS}
+              selectedValue={selectedFramework}
+              onSelect={setSelectedFramework}
+            />
+          </Box>
         </Box>
 
         {/* 푸터 섹션 */}
@@ -209,8 +141,8 @@ const SelectFrameworkPage: React.FC<SelectFrameworkPageProps> = ({
             onClick={() => navigate("/select-repo")}
             aria-label="Go back"
             sx={{
-              width: "150px", // 버튼의 고정 너비
-              height: "40px", // 버튼의 고정 높이
+              width: "150px",
+              height: "40px",
             }}
           >
             &larr; Back
@@ -219,11 +151,11 @@ const SelectFrameworkPage: React.FC<SelectFrameworkPageProps> = ({
           <Button
             variant="contained"
             onClick={handleNextClick}
-            disabled={!selectedFramework || !selectedRegion}
+            disabled={!selectedFramework}
             aria-label="Go to next step"
             sx={{
-              width: "150px", // 버튼의 고정 너비
-              height: "40px", // 버튼의 고정 높이
+              width: "150px",
+              height: "40px",
             }}
           >
             Next &rarr;

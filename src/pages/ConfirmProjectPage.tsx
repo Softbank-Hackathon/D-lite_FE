@@ -21,8 +21,8 @@ interface ConfirmProjectPageProps {
 
 // --- 2. 메인 페이지 컴포넌트 ---
 const ConfirmProjectPage: React.FC<ConfirmProjectPageProps> = ({
-  stepIndex = 3, // 4번째 단계
-  totalSteps = 4,
+  stepIndex = 4, // 5번째 단계
+  totalSteps = 5,
 }) => {
   const theme = useTheme();
   const { project } = useProject();
@@ -110,6 +110,21 @@ const ConfirmProjectPage: React.FC<ConfirmProjectPageProps> = ({
             </Grid>
             <Grid size={{ xs: 12, sm: 9 }}>
               <Typography>{project.repo?.full_name}</Typography>
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <Divider
+                sx={{ my: 1, borderColor: theme.palette.custom.border }}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                Branch
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 9 }}>
+              <Typography>{project.branch || 'Not specified'}</Typography>
             </Grid>
 
             <Grid size={{ xs: 12 }}>

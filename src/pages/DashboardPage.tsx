@@ -12,10 +12,50 @@ import { useProject } from '../contexts/ProjectContext'; // ProjectContext impor
 
 // 더미 데이터 정의
 const dummyData: ProjectData[] = [
-  { id: 1, name: "Nelsa web", repository: "my-repository-a", framework: "React", recentDate: "2023-05-25", status: "Completed" },
-  { id: 2, name: "Website builder", repository: "my-repository-b", framework: "Vue", recentDate: "2023-07-13", status: "Failed" },
-  { id: 3, name: "E-commerce Platform", repository: "my-repository-c", framework: "Angular", recentDate: "2023-11-01", status: "Running" },
-  { id: 4, name: "Portfolio Site", repository: "my-repository-d", framework: "React", recentDate: "2022-12-20", status: "Completed" },
+  { 
+    id: 1, 
+    name: "Nelsa web", 
+    repository: "my-repository-a",
+    repositoryUrl: "https://github.com/mock-user/my-repository-a",
+    framework: "React", 
+    region: "ap-northeast-2 (Seoul)",
+    deploymentUrl: "https://d-light-nelsa.s3.ap-northeast-2.amazonaws.com/index.html",
+    recentDate: "2023-05-25", 
+    status: "Completed" 
+  },
+  { 
+    id: 2, 
+    name: "Website builder", 
+    repository: "my-repository-b",
+    repositoryUrl: "https://github.com/mock-user/my-repository-b",
+    framework: "Vue", 
+    region: "us-east-1 (N. Virginia)",
+    deploymentUrl: "https://d-light-builder.s3.us-east-1.amazonaws.com/index.html",
+    recentDate: "2023-07-13", 
+    status: "Failed" 
+  },
+  { 
+    id: 3, 
+    name: "E-commerce Platform", 
+    repository: "my-repository-c",
+    repositoryUrl: "https://github.com/mock-user/my-repository-c",
+    framework: "Angular", 
+    region: "eu-central-1 (Frankfurt)",
+    deploymentUrl: "https://d-light-ecommerce.s3.eu-central-1.amazonaws.com/index.html",
+    recentDate: "2023-11-01", 
+    status: "Running" 
+  },
+  { 
+    id: 4, 
+    name: "Portfolio Site", 
+    repository: "my-repository-d",
+    repositoryUrl: "https://github.com/mock-user/my-repository-d",
+    framework: "React", 
+    region: "ap-northeast-1 (Tokyo)",
+    deploymentUrl: "https://d-light-portfolio.s3.ap-northeast-1.amazonaws.com/index.html",
+    recentDate: "2022-12-20", 
+    status: "Completed" 
+  },
 ];
 
 // 날짜 포맷팅 유틸
@@ -24,7 +64,7 @@ const formatDate = (dateString: string) => {
 };
 
 const modalStyle = {
-  position: 'absolute' as 'absolute',
+  position: 'absolute' as const,
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',

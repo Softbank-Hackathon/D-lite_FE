@@ -1,134 +1,75 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Container, Typography, Paper, CircularProgress, Alert, List, ListItem, ListItemText, Divider } from '@mui/material';
-import axios, { isAxiosError } from '../api/axiosInstance';
+import { Box, Typography, CircularProgress, useTheme, Paper } from '@mui/material';
+import axios from '../api/axiosInstance';
 import { useProject } from '../contexts/ProjectContext';
+import { commonPaperStyles } from '../styles/commonStyles';
 
 const DeploymentPage: React.FC = () => {
+  const theme = useTheme();
   const { project } = useProject();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     // 모든 필수 정보가 context에 있는지 확인
-    if (!project || !project.repo || !project.projectName || !project.projectType || !project.framework || !project.region || !project.roleArn || !project.externalId) {
-      // 정보가 불완전하면 설정 시작 페이지로 리디렉션
-      alert('Project configuration is incomplete. Redirecting to dashboard.');
+    if (!project || !project.repo || !project.projectName || !project.framework || !project.region || !project.roleArn || !project.externalId || !project.branch) {
+      // 정보가 불완전하면 dashboard로 리디렉션
+      console.error('Project configuration is incomplete');
       navigate('/dashboard');
+      return;
     }
-  }, [project, navigate]);
 
-  const handleDeploy = async () => {
-    if (!project) return;
+    // 자동으로 배포 시작
+    const startDeployment = async () => {
+      // API 요청 본문 구성
+      const deploymentData = {
+        githubRepositoryUrl: project.repo.html_url,
+        projectType: project.projectType || 'frontend',
+        frameworkType: project.framework!,
+        branch: project.branch!,
+        region: project.region!,
+        projectName: project.projectName,
+        roleArn: project.roleArn!,
+        externalId: project.externalId!,
+      };
 
-    setLoading(true);
-    setError(null);
-
-    // API 요청 본문 구성
-    const deploymentData = {
-      githubRepositoryUrl: project.repo.html_url,
-      projectType: project.projectType,
-      frameworkType: project.framework,
-      region: project.region,
-      projectName: project.projectName,
-      roleArn: project.roleArn,
-      externalId: project.externalId,
+      try {
+        const response = await axios.post('/api/v1/deployments', deploymentData);
+        const { deploymentId } = response.data;
+        
+        // 배포 상태 페이지로 이동
+        navigate(`/status?deploymentId=${deploymentId}`);
+      } catch (error) {
+        console.error('Failed to start deployment:', error);
+        // 에러 발생 시에도 status 페이지로 이동 (에러 처리는 status 페이지에서)
+        navigate('/status?error=deployment_failed');
+      }
     };
 
-    try {
-      await axios.post('/api/v1/deployments/deployment-project', deploymentData);
-      // 배포 상태 페이지로 이동 (추후 실제 배포 ID 등을 전달할 수 있음)
-      navigate('/status');
-    } catch (err: any) {
-      if (isAxiosError(err) && err.response) {
-        setError(err.response.data.error || 'An unexpected error occurred during deployment.');
-      } else {
-        setError('An unexpected error occurred.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!project) {
-    // useEffect에서 리디렉션하기 전 잠시 보여줄 로딩 상태
-    return <CircularProgress />;
-  }
+    startDeployment();
+  }, [project, navigate]);
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Paper sx={{ p: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Confirm & Deploy
+    <Box
+      sx={{
+        backgroundColor: theme.palette.custom.header,
+        py: 2,
+        display: "flex",
+        flexGrow: 1,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Paper elevation={0} sx={{ ...commonPaperStyles, textAlign: "center" }}>
+        <CircularProgress size={60} sx={{ mb: 3 }} />
+        <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1 }}>
+          Starting Deployment...
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          Please review your project settings below and click the deploy button to start the process.
+        <Typography color="text.secondary">
+          Please wait while we initialize your deployment
         </Typography>
-
-        <List disablePadding>
-          <ListItem>
-            <ListItemText primary="Project Name" secondary={project.projectName} />
-          </ListItem>
-          <Divider component="li" />
-          <ListItem>
-            <ListItemText primary="GitHub Repository" secondary={project.repo.full_name} />
-          </ListItem>
-          <Divider component="li" />
-          <ListItem>
-            <ListItemText primary="Project Type" secondary={project.projectType} />
-          </ListItem>
-          <Divider component="li" />
-          <ListItem>
-            <ListItemText primary="Framework" secondary={project.framework} />
-          </ListItem>
-          <Divider component="li" />
-          <ListItem>
-            <ListItemText primary="AWS Region" secondary={project.region} />
-          </ListItem>
-          <Divider component="li" />
-          <ListItem>
-            <ListItemText primary="AWS Role ARN" secondary={project.roleArn} />
-          </ListItem>
-        </List>
-
-        <Box sx={{ minHeight: "50px", mt: 3, mb: 2 }}>
-          {error && <Alert severity="error">{error}</Alert>}
-        </Box>
-
-        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between', position: 'relative' }}>
-          <Button
-            variant="outlined"
-            color="secondary"
-            size="large"
-            onClick={() => navigate('/connect')}
-          >
-            Back
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            disabled={loading}
-            onClick={handleDeploy}
-          >
-            {loading ? 'Deploying...' : 'Confirm & Deploy'}
-          </Button>
-          {loading && (
-            <CircularProgress
-              size={24}
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                marginTop: '-12px',
-                marginLeft: '-12px',
-              }}
-            />
-          )}
-        </Box>
       </Paper>
-    </Container>
+    </Box>
   );
 };
 

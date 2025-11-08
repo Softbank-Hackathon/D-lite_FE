@@ -1,13 +1,15 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Paper, Typography, Button, useTheme } from "@mui/material";
 
 // 컴포넌트 임포트
 import RepoSearchInput from "../components/RepoSearchInput";
 import RepoList, { type Repo } from "../components/RepoList";
+import BranchList, { type Branch } from "../components/BranchList";
 import StepIndicator from "../components/StepIndicator";
-import { useProject } from "../contexts/ProjectContext"; // useProject import 추가
+import { useProject } from "../contexts/ProjectContext";
 import { commonPaperStyles } from "../styles/commonStyles";
+import axios from "../api/axiosInstance";
 
 // --- 1. 더미 데이터 ---
 const dummyRepos: Repo[] = [
@@ -26,13 +28,16 @@ interface SelectRepoPageProps {
 // --- 3. 메인 페이지 컴포넌트 ---
 const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
   stepIndex = 0,
-  totalSteps = 4,
+  totalSteps = 5,
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { setProjectRepo } = useProject();
+  const { setProjectRepo, updateProjectSettings } = useProject();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null);
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [loadingBranches, setLoadingBranches] = useState(false);
 
   const filteredRepos = useMemo(() => {
     if (!searchQuery) {
@@ -43,9 +48,53 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
     );
   }, [searchQuery]);
 
-  const handleNextClick = () => {
+  // 레포 선택 시 브랜치 목록 가져오기
+  useEffect(() => {
     if (selectedRepo) {
-      setProjectRepo(selectedRepo as any); // 타입 호환성을 위해 any 사용, 실제로는 Repo 타입 일치 필요
+      setLoadingBranches(true);
+      setSelectedBranch(null);
+      setBranches([]);
+
+      // API 호출로 브랜치 목록 가져오기
+      axios
+        .get(`/api/v1/github/repos/${selectedRepo.id}/branches`)
+        .then((response) => {
+          setBranches(response.data);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch branches:", error);
+          setBranches([]);
+        })
+        .finally(() => {
+          setLoadingBranches(false);
+        });
+    } else {
+      setBranches([]);
+      setSelectedBranch(null);
+    }
+  }, [selectedRepo]);
+
+  const handleRepoSelect = (repo: Repo) => {
+    setSelectedRepo(repo);
+  };
+
+  const handleBranchSelect = (branch: Branch) => {
+    setSelectedBranch(branch);
+  };
+
+  const handleNextClick = () => {
+    if (selectedRepo && selectedBranch) {
+      // Repository 타입을 ProjectContext의 Repository에 맞게 변환
+      const repository = {
+        id: selectedRepo.id,
+        name: selectedRepo.fullName.split("/")[1] || selectedRepo.fullName,
+        full_name: selectedRepo.fullName,
+        private: selectedRepo.isPrivate,
+        html_url: `https://github.com/${selectedRepo.fullName}`,
+      };
+
+      setProjectRepo(repository);
+      updateProjectSettings({ branch: selectedBranch.name });
       navigate("/select-framework");
     }
   };
@@ -70,23 +119,79 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
               component="h1"
               sx={{ fontWeight: "bold", mb: 0.5 }}
             >
-              1. Select Repository to Deploy
+              1. Select Repository & Branch
             </Typography>
             <Typography color="text.secondary">
-              Select a repository from your Github
+              Select a repository and branch from your GitHub
             </Typography>
           </Box>
 
-          {/* 컨텐츠 섹션 */}
-          <RepoSearchInput
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <RepoList
-            repos={filteredRepos}
-            selectedId={selectedRepo?.id || null}
-            onSelect={setSelectedRepo}
-          />
+          {/* 레포지토리 선택 섹션 */}
+          {!selectedRepo ? (
+            <>
+              <RepoSearchInput
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <RepoList
+                repos={filteredRepos}
+                selectedId={null}
+                onSelect={handleRepoSelect}
+              />
+            </>
+          ) : (
+            <>
+              {/* 선택된 레포지토리 표시 (간략하게) */}
+              <Box
+                sx={{
+                  p: 2,
+                  mb: 2,
+                  borderRadius: "12px",
+                  border: `2px solid ${theme.palette.primary.main}`,
+                  backgroundColor: theme.palette.action.hover,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Selected Repository
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                    {selectedRepo.fullName}
+                  </Typography>
+                </Box>
+                <Button
+                  variant="text"
+                  onClick={() => {
+                    setSelectedRepo(null);
+                    setSelectedBranch(null);
+                    setBranches([]);
+                  }}
+                  size="small"
+                >
+                  Change
+                </Button>
+              </Box>
+
+              {/* 브랜치 선택 섹션 */}
+              <Box>
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: "bold", mb: 1 }}
+                >
+                  Select Branch
+                </Typography>
+                <BranchList
+                  branches={branches}
+                  selectedBranch={selectedBranch?.name || null}
+                  onSelect={handleBranchSelect}
+                  loading={loadingBranches}
+                />
+              </Box>
+            </>
+          )}
         </Box>
 
         {/* 푸터 섹션 */}
@@ -113,11 +218,11 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
           <Button
             variant="contained"
             onClick={handleNextClick}
-            disabled={!selectedRepo}
+            disabled={!selectedRepo || !selectedBranch}
             aria-label="Go to next step"
             sx={{
-              width: "150px", // 버튼의 고정 너비
-              height: "40px", // 버튼의 고정 높이
+              width: "150px",
+              height: "40px",
             }}
           >
             Next &rarr;

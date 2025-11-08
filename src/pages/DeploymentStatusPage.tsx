@@ -1,105 +1,185 @@
 /**
  * @file DeploymentStatusPage.tsx
  * @description 배포 상황을 나타내기 위한 페이지입니다.
- * 현재 배포 상황과 실패 시 실패 원인을 나타냅니다.
+ * 1초마다 배포 상태를 폴링하며 IN_PROGRESS, SUCCESS, FAILED 상태를 처리합니다.
  */
-import React, { useState, useEffect, useRef } from "react";
-import { Box, Container, Paper, Typography, Chip } from "@mui/material";
-
-const mockLogs = [
-  "Cloning repository...",
-  "Repository cloned successfully.",
-  "Starting build process...",
-  "Installing dependencies... (npm install)",
-  "Dependencies installed.",
-  "Running build script... (npm run build)",
-  "Build completed.",
-  "Preparing for deployment to S3...",
-  "Uploading files...",
-  "[1/10] Uploaded index.html",
-  "[2/10] Uploaded main.css",
-  "[3/10] Uploaded bundle.js",
-  "[4/10] Uploaded logo.svg",
-  "[5/10] Uploaded asset1.png",
-  "Files uploaded successfully.",
-  "Configuring CloudFront distribution...",
-  "Invalidating cache...",
-  "Cache invalidation complete.",
-  "Deployment successful!",
-];
-
-type DeploymentStatus = "In Progress" | "Success" | "Failed";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Box,
+  Paper,
+  Typography,
+  CircularProgress,
+  Button,
+  Alert,
+  Link,
+  useTheme,
+} from "@mui/material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ErrorIcon from "@mui/icons-material/Error";
+import axios from "../api/axiosInstance";
+import { commonPaperStyles } from "../styles/commonStyles";
+import type { DeploymentStatusResponse } from "../types/deployment";
 
 const DeploymentStatusPage: React.FC = () => {
-  const [logs, setLogs] = useState<string[]>([]);
-  const [status, setStatus] = useState<DeploymentStatus>("In Progress");
-  const logContainerRef = useRef<HTMLDivElement>(null);
+  const theme = useTheme();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const deploymentId = searchParams.get("deploymentId");
+  const error = searchParams.get("error");
+
+  const [status, setStatus] = useState<"IN_PROGRESS" | "SUCCESS" | "FAILED">(
+    "IN_PROGRESS"
+  );
+  const [deploymentUrl, setDeploymentUrl] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [polling, setPolling] = useState(true);
 
   useEffect(() => {
-    let logIndex = 0;
-    const intervalId = setInterval(() => {
-      if (logIndex < mockLogs.length) {
-        setLogs((prevLogs) => [...prevLogs, mockLogs[logIndex]]);
-        if (mockLogs[logIndex].includes("successful")) {
-          setStatus("Success");
-          clearInterval(intervalId);
+    // URL에 에러 파라미터가 있으면 즉시 실패 상태로 표시
+    if (error) {
+      setStatus("FAILED");
+      setErrorMessage("Failed to start deployment. Please try again.");
+      setPolling(false);
+      return;
+    }
+
+    if (!deploymentId) {
+      setStatus("FAILED");
+      setErrorMessage("No deployment ID provided");
+      setPolling(false);
+      return;
+    }
+
+    // 1초마다 배포 상태 확인
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await axios.get<DeploymentStatusResponse>(
+          `/api/v1/deployments/${deploymentId}/status`
+        );
+
+        const { status: newStatus, deploymentUrl: url, errorMessage: errMsg } = response.data;
+
+        setStatus(newStatus);
+
+        if (newStatus === "SUCCESS") {
+          setDeploymentUrl(url || null);
+          setPolling(false);
+          clearInterval(pollInterval);
+
+          // 2초 후 자동으로 Dashboard로 이동
+          setTimeout(() => {
+            navigate("/dashboard");
+          }, 2000);
+        } else if (newStatus === "FAILED") {
+          setErrorMessage(errMsg || "Deployment failed");
+          setPolling(false);
+          clearInterval(pollInterval);
         }
-        logIndex++;
-      } else {
-        // Fallback in case the success message isn't the last one
-        setStatus("Success");
-        clearInterval(intervalId);
+      } catch (err) {
+        console.error("Failed to fetch deployment status:", err);
+        setStatus("FAILED");
+        setErrorMessage("Failed to fetch deployment status");
+        setPolling(false);
+        clearInterval(pollInterval);
       }
-    }, 1000); // Add a new log every second
+    }, 1000); // 1초마다 폴링
 
-    return () => clearInterval(intervalId);
-  }, []);
+    return () => {
+      clearInterval(pollInterval);
+    };
+  }, [deploymentId, error, navigate]);
 
-  useEffect(() => {
-    // Auto-scroll to the bottom of the log container
-    if (logContainerRef.current) {
-      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
-    }
-  }, [logs]);
-
-  const getStatusChipColor = (status: DeploymentStatus) => {
-    switch (status) {
-      case "Success":
-        return "success";
-      case "Failed":
-        return "error";
-      case "In Progress":
-        return "info";
-      default:
-        return "default";
-    }
+  const handleGoToDashboard = () => {
+    navigate("/dashboard");
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-        <Typography variant="h4" component="h1" sx={{ mr: 2 }}>
-          Deployment Status
-        </Typography>
-        <Chip label={status} color={getStatusChipColor(status)} />
-      </Box>
-      <Paper
-        ref={logContainerRef}
-        sx={{
-          p: 2,
-          backgroundColor: "#1e1e1e",
-          color: "#d4d4d4",
-          fontFamily: "monospace",
-          height: "60vh",
-          overflowY: "auto",
-          whiteSpace: "pre-wrap",
-        }}
-      >
-        {logs.map((log, index) => (
-          <div key={index}>{`> ${log}`}</div>
-        ))}
+    <Box
+      sx={{
+        backgroundColor: theme.palette.custom.header,
+        py: 2,
+        display: "flex",
+        flexGrow: 1,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Paper elevation={0} sx={{ ...commonPaperStyles, textAlign: "center" }}>
+        {/* IN_PROGRESS 상태 */}
+        {status === "IN_PROGRESS" && polling && (
+          <>
+            <CircularProgress size={80} sx={{ mb: 3 }} />
+            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+              Deployment In Progress
+            </Typography>
+            <Typography color="text.secondary">
+              Please wait while we deploy your project...
+            </Typography>
+          </>
+        )}
+
+        {/* SUCCESS 상태 */}
+        {status === "SUCCESS" && (
+          <>
+            <CheckCircleIcon
+              sx={{ fontSize: 80, color: "success.main", mb: 3 }}
+            />
+            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+              Deployment Successful!
+            </Typography>
+            <Typography color="text.secondary" sx={{ mb: 3 }}>
+              Your project has been deployed successfully
+            </Typography>
+            {deploymentUrl && (
+              <Alert severity="success" sx={{ mb: 3, textAlign: "left" }}>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  <strong>Deployment URL:</strong>
+                </Typography>
+                <Link
+                  href={deploymentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ wordBreak: "break-all" }}
+                >
+                  {deploymentUrl}
+                </Link>
+              </Alert>
+            )}
+            <Typography variant="body2" color="text.secondary">
+              Redirecting to dashboard in 2 seconds...
+            </Typography>
+          </>
+        )}
+
+        {/* FAILED 상태 */}
+        {status === "FAILED" && (
+          <>
+            <ErrorIcon sx={{ fontSize: 80, color: "error.main", mb: 3 }} />
+            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+              Deployment Failed
+            </Typography>
+            <Typography color="text.secondary" sx={{ mb: 3 }}>
+              An error occurred during deployment
+            </Typography>
+            {errorMessage && (
+              <Alert severity="error" sx={{ mb: 3, textAlign: "left" }}>
+                <Typography variant="body2">
+                  <strong>Error:</strong> {errorMessage}
+                </Typography>
+              </Alert>
+            )}
+            <Button
+              variant="contained"
+              onClick={handleGoToDashboard}
+              sx={{ mt: 2 }}
+            >
+              Go to Dashboard
+            </Button>
+          </>
+        )}
       </Paper>
-    </Container>
+    </Box>
   );
 };
 

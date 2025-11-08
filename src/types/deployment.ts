@@ -7,8 +7,22 @@ export interface DeploymentFormData {
   githubRepositoryUrl: string;
   projectType: 'frontend' | 'backend';
   frameworkType: string;
+  branch: string;
   region: string;
   projectName: string;
   roleArn: string;
   externalId: string;
+}
+
+export type DeploymentStatus = 'IN_PROGRESS' | 'SUCCESS' | 'FAILED';
+
+export interface DeploymentResponse {
+  deploymentId: string;
+  status: DeploymentStatus;
+}
+
+export interface DeploymentStatusResponse {
+  status: DeploymentStatus;
+  deploymentUrl?: string;
+  errorMessage?: string;
 }
