@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
-import axios from '../api/axiosInstance';
+import { useUserInfo } from '../hooks/api/useAuthApi';
 import type { User } from '../types/api';
 
 interface AuthContextType {
@@ -16,32 +16,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  
+  // useUserInfo 훅 사용 (자동으로 사용자 정보 조회)
+  const { data: userData, isLoading, error } = useUserInfo();
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        // 사용자 정보 조회로 인증 상태 확인 (GET /는 프록시 불가능하므로)
-        const userResponse = await axios.get<User>('/api/users/me');
-        
-        if (userResponse.data) {
-          setIsAuthenticated(true);
-          setUser(userResponse.data);
-        } else {
-          setIsAuthenticated(false);
-          setUser(null);
-        }
-      } catch (error) {
-        console.error('Failed to check auth status:', error);
-        setIsAuthenticated(false);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    checkAuthStatus();
-  }, []);
+    if (userData) {
+      setIsAuthenticated(true);
+      setUser(userData);
+    } else if (error) {
+      setIsAuthenticated(false);
+      setUser(null);
+    }
+  }, [userData, error]);
 
   const login = () => {
     // GitHub OAuth 로그인 페이지로 리다이렉트
@@ -50,17 +37,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    try {
-      await axios.post('/api/auth/logout');
-      setIsAuthenticated(false);
-      setUser(null);
-    } catch (error) {
-      console.error('Failed to logout:', error);
-    }
+    // 로그아웃 시 /logout 엔드포인트 호출 (Spring Security 표준)
+    window.location.href = '/logout';
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading: isLoading }}>
       {children}
     </AuthContext.Provider>
   );

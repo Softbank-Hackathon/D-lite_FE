@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Paper, Typography, Button, useTheme } from "@mui/material";
+import { Box, Paper, Typography, Button, useTheme, CircularProgress, Alert } from "@mui/material";
 
 // 컴포넌트 임포트
 import RepoSearchInput from "../components/RepoSearchInput";
@@ -11,16 +11,9 @@ import { useProject } from "../contexts/ProjectContext";
 import { commonPaperStyles } from "../styles/commonStyles";
 import { useSearchFilter } from "../hooks/useSearchFilter";
 import { useBranchLoader } from "../hooks/useBranchLoader";
+import { useRepositories } from "../hooks/api/useGithubApi";
 
-// --- 1. 더미 데이터 ---
-const dummyRepos: Repo[] = [
-  { id: 1, fullName: "angkmfirefoxgal/repository-a", isPrivate: false },
-  { id: 2, fullName: "angkmfirefoxgal/repository-b", isPrivate: true },
-  { id: 3, fullName: "another-org/dlight-frontend", isPrivate: false },
-  { id: 4, fullName: "angkmfirefoxgal/personal-portfolio", isPrivate: true },
-];
-
-// --- 2. Props 정의 (이제 내부에서 navigate를 사용하므로 props는 step 관련만 남김) ---
+// --- 1. Props 정의 (이제 내부에서 navigate를 사용하므로 props는 step 관련만 남김) ---
 interface SelectRepoPageProps {
   stepIndex?: number;
   totalSteps?: number;
@@ -37,8 +30,22 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRepo, setSelectedRepo] = useState<Repo | null>(null);
 
+  // useRepositories 훅으로 레포지토리 목록 조회
+  const { data: repositories, isLoading, error } = useRepositories();
+
+  // API 응답을 Repo 형식으로 변환
+  const repos: Repo[] = useMemo(() => {
+    if (!repositories) return [];
+    
+    return repositories.map((repo) => ({
+      id: repo.id,
+      fullName: repo.full_name,
+      isPrivate: repo.private,
+    }));
+  }, [repositories]);
+
   // 커스텀 훅 사용: 레포지토리 검색 필터링
-  const filteredRepos = useSearchFilter(dummyRepos, searchQuery, "fullName");
+  const filteredRepos = useSearchFilter(repos, searchQuery, "fullName");
 
   // 선택된 레포지토리에서 owner/repo 추출
   const repoIdentifier = useMemo(() => {
@@ -128,8 +135,22 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
             </Typography>
           </Box>
 
+          {/* 로딩 상태 */}
+          {isLoading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          )}
+
+          {/* 에러 상태 */}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              레포지토리 목록을 불러오는데 실패했습니다.
+            </Alert>
+          )}
+
           {/* 레포지토리 선택 섹션 */}
-          {!selectedRepo ? (
+          {!isLoading && !error && !selectedRepo ? (
             <>
               <RepoSearchInput
                 value={searchQuery}
@@ -141,7 +162,7 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
                 onSelect={handleRepoSelect}
               />
             </>
-          ) : (
+          ) : selectedRepo ? (
             <>
               {/* 선택된 레포지토리 표시 (간략하게) */}
               <Box
@@ -188,7 +209,7 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
                 />
               </Box>
             </>
-          )}
+          ) : null}
         </Box>
 
         {/* 푸터 섹션 */}

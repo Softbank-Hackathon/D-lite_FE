@@ -7,14 +7,35 @@ import {
   useTheme,
   Paper,
 } from "@mui/material";
-import axios from "../api/axiosInstance";
+
 import { useProject } from "../contexts/ProjectContext";
 import { commonPaperStyles } from "../styles/commonStyles";
+import { useCreateDeployment } from "../hooks/api/useDeploymentApi";
 
 const DeploymentPage: React.FC = () => {
   const theme = useTheme();
   const { project } = useProject();
   const navigate = useNavigate();
+  
+  // useCreateDeployment 훅 사용
+  const { mutate: createDeployment, data: deploymentResponse, error } = useCreateDeployment();
+
+  // 배포 응답 처리
+  useEffect(() => {
+    if (deploymentResponse) {
+      // API 응답 형식: { message, result, errorCode, success }
+      const deploymentId = deploymentResponse.result;
+      navigate(`/status?deploymentId=${deploymentId}`);
+    }
+  }, [deploymentResponse, navigate]);
+
+  // 에러 처리
+  useEffect(() => {
+    if (error) {
+      console.error('Failed to start deployment:', error);
+      navigate("/status?error=deployment_failed");
+    }
+  }, [error, navigate]);
 
   useEffect(() => {
     // 모든 필수 정보가 context에 있는지 확인
@@ -35,39 +56,19 @@ const DeploymentPage: React.FC = () => {
     }
 
     // 자동으로 배포 시작
-    const startDeployment = async () => {
-      // API 요청 본문 구성
-      const deploymentData = {
-        githubRepositoryUrl: project.repo.html_url,
-        projectType: project.projectType || "frontend",
-        frameworkType: project.framework!,
-        branch: project.branch!,
-        region: project.region!,
-        projectName: project.projectName,
-        roleArn: project.roleArn!,
-        externalId: project.externalId!,
-      };
-
-      try {
-        const response = await axios.post(
-          "/api/v1/deployments/deployment-project",
-          deploymentData
-        );
-        // API 응답 형식: { message, result, errorCode, success }
-        // result에 deploymentId가 들어있음
-        const deploymentId = response.data.result;
-
-        // 배포 상태 페이지로 이동
-        navigate(`/status?deploymentId=${deploymentId}`);
-      } catch (error) {
-        console.error("Failed to start deployment:", error);
-        // 에러 발생 시에도 status 페이지로 이동 (에러 처리는 status 페이지에서)
-        navigate("/status?error=deployment_failed");
-      }
+    const deploymentData = {
+      githubRepositoryUrl: project.repo.html_url,
+      projectType: (project.projectType || "frontend") as "frontend" | "backend",
+      frameworkType: project.framework!,
+      branch: project.branch!,
+      region: project.region!,
+      projectName: project.projectName,
+      roleArn: project.roleArn!,
+      externalId: project.externalId!,
     };
 
-    startDeployment();
-  }, [project, navigate]);
+    createDeployment(deploymentData);
+  }, [project, navigate, createDeployment]);
 
   return (
     <Box

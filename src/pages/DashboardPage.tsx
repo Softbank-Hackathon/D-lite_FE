@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Box, Container, Typography, Modal, TextField, Button, Paper
+  Box, Container, Typography, Modal, TextField, Button, Paper, CircularProgress, Alert
 } from '@mui/material';
 
 // 컴포넌트 임포트
@@ -10,54 +10,7 @@ import DataTable, { type ProjectData } from '../components/DataTable';
 import NewProjectButton from '../components/NewProjectButton';
 import { useProject } from '../contexts/ProjectContext';
 import { useDataFilter } from '../hooks/useDataFilter';
-
-// 더미 데이터 정의
-const dummyData: ProjectData[] = [
-  { 
-    id: 1, 
-    name: "Nelsa web", 
-    repository: "my-repository-a",
-    repositoryUrl: "https://github.com/mock-user/my-repository-a",
-    framework: "React", 
-    region: "ap-northeast-2 (Seoul)",
-    deploymentUrl: "https://d-light-nelsa.s3.ap-northeast-2.amazonaws.com/index.html",
-    recentDate: "2023-05-25", 
-    status: "Completed" 
-  },
-  { 
-    id: 2, 
-    name: "Website builder", 
-    repository: "my-repository-b",
-    repositoryUrl: "https://github.com/mock-user/my-repository-b",
-    framework: "Vue", 
-    region: "us-east-1 (N. Virginia)",
-    deploymentUrl: "https://d-light-builder.s3.us-east-1.amazonaws.com/index.html",
-    recentDate: "2023-07-13", 
-    status: "Failed" 
-  },
-  { 
-    id: 3, 
-    name: "E-commerce Platform", 
-    repository: "my-repository-c",
-    repositoryUrl: "https://github.com/mock-user/my-repository-c",
-    framework: "Angular", 
-    region: "eu-central-1 (Frankfurt)",
-    deploymentUrl: "https://d-light-ecommerce.s3.eu-central-1.amazonaws.com/index.html",
-    recentDate: "2023-11-01", 
-    status: "Running" 
-  },
-  { 
-    id: 4, 
-    name: "Portfolio Site", 
-    repository: "my-repository-d",
-    repositoryUrl: "https://github.com/mock-user/my-repository-d",
-    framework: "React", 
-    region: "ap-northeast-1 (Tokyo)",
-    deploymentUrl: "https://d-light-portfolio.s3.ap-northeast-1.amazonaws.com/index.html",
-    recentDate: "2022-12-20", 
-    status: "Completed" 
-  },
-];
+import { useProjects } from '../hooks/api/useProjectApi';
 
 const modalStyle = {
   position: 'absolute' as const,
@@ -77,6 +30,26 @@ const DashboardPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [filters, setFilters] = useState<FilterValues>({ framework: 'all', date: 'recent', status: 'all' });
+
+  // useProjects 훅으로 프로젝트 목록 조회
+  const { data: projectsResponse, isLoading, error } = useProjects();
+
+  // API 응답을 ProjectData 형식으로 변환
+  const projectData: ProjectData[] = React.useMemo(() => {
+    if (!projectsResponse?.result) return [];
+    
+    return projectsResponse.result.map((project) => ({
+      id: project.id,
+      name: project.projectName,
+      repository: project.githubRepoUrl.split('/').pop() || project.githubRepoUrl,
+      repositoryUrl: project.githubRepoUrl,
+      framework: project.frameworkType,
+      region: 'N/A', // API에 region 정보가 없으므로 기본값
+      deploymentUrl: 'N/A', // API에 deploymentUrl 정보가 없으므로 기본값
+      recentDate: new Date().toISOString().split('T')[0], // 임시값
+      status: project.isActive ? 'Completed' : 'Failed', // isActive를 Completed/Failed로 매핑
+    }));
+  }, [projectsResponse]);
 
   const handleOpenModal = () => {
     clearProject();
@@ -98,18 +71,37 @@ const DashboardPage: React.FC = () => {
   };
 
   // 커스텀 훅 사용: 데이터 필터링 및 정렬
-  const filteredAndSortedData = useDataFilter(dummyData, filters);
+  const filteredAndSortedData = useDataFilter(projectData, filters);
 
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Container sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-          <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>
-            Project summary
-          </Typography>
-          <Filters onFilterChange={handleFilterChange} />
-        </Box>
-        <DataTable data={filteredAndSortedData} />
+        {/* 로딩 상태 */}
+        {isLoading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {/* 에러 상태 */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            프로젝트 목록을 불러오는데 실패했습니다.
+          </Alert>
+        )}
+
+        {/* 데이터 표시 */}
+        {!isLoading && !error && (
+          <>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+              <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>
+                Project summary
+              </Typography>
+              <Filters onFilterChange={handleFilterChange} />
+            </Box>
+            <DataTable data={filteredAndSortedData} />
+          </>
+        )}
       </Container>
       <NewProjectButton onClick={handleOpenModal} />
 
