@@ -48,9 +48,9 @@ axiosInstance.interceptors.response.use(
       if (error.response.status === 401) {
         console.warn('[Auth] 401 Unauthorized - Redirecting to GitHub OAuth login');
         // GitHub OAuth 로그인 페이지로 리다이렉트
-        // 프록시 사용 시 상대 경로, 미사용 시 절대 경로
-        const oauthUrl = API_BASE_URL 
-          ? `${API_BASE_URL}/oauth2/authorization/github`
+        const backendUrl = import.meta.env.VITE_BACKEND_URL;
+        const oauthUrl = backendUrl 
+          ? `${backendUrl}/oauth2/authorization/github`
           : '/oauth2/authorization/github';
         window.location.href = oauthUrl;
       }

@@ -32,13 +32,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = () => {
     // GitHub OAuth 로그인 페이지로 리다이렉트
-    // 프록시 사용 시 상대 경로
-    window.location.href = '/oauth2/authorization/github';
+    // 개발 환경: 프록시 사용 (상대 경로)
+    // 프로덕션 환경: 백엔드 직접 호출 (절대 경로)
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    const oauthUrl = backendUrl 
+      ? `${backendUrl}/oauth2/authorization/github`
+      : '/oauth2/authorization/github';
+    
+    window.location.href = oauthUrl;
   };
 
   const logout = async () => {
     // 로그아웃 시 /logout 엔드포인트 호출 (Spring Security 표준)
-    window.location.href = '/logout';
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    const logoutUrl = backendUrl 
+      ? `${backendUrl}/logout`
+      : '/logout';
+    
+    window.location.href = logoutUrl;
   };
 
   return (
