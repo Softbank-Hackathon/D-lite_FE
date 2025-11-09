@@ -41,6 +41,7 @@ export const router = createBrowserRouter([
             path: "select-region",
             element: <SelectRegionPage />,
           },
+          // TODO: 해당 라우트 제거
           {
             path: "connect",
             element: <AWSConnectionPage />,

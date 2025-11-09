@@ -64,9 +64,15 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const updateProjectSettings = useCallback((settings: Partial<ProjectSettings>) => {
+    console.log('[ProjectContext] Updating project settings:', settings);
     setProject((prevProject) => {
-      if (!prevProject) return null;
-      return { ...prevProject, ...settings };
+      if (!prevProject) {
+        console.log('[ProjectContext] No project to update!');
+        return null;
+      }
+      const updatedProject = { ...prevProject, ...settings };
+      console.log('[ProjectContext] Updated project:', updatedProject);
+      return updatedProject;
     });
   }, []);
 

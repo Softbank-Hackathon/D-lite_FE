@@ -33,7 +33,7 @@ interface SelectRegionPageProps {
 // --- 3. 메인 페이지 컴포넌트 ---
 const SelectRegionPage: React.FC<SelectRegionPageProps> = ({
   stepIndex = 2,
-  totalSteps = 5,
+  totalSteps = 4,
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -47,7 +47,7 @@ const SelectRegionPage: React.FC<SelectRegionPageProps> = ({
   const handleNextClick = () => {
     if (selectedRegion) {
       updateProjectSettings({ region: selectedRegion });
-      navigate("/connect");
+      navigate("/confirm-project");
     }
   };
 

@@ -14,6 +14,7 @@ import { useProject } from "../contexts/ProjectContext";
 import StepIndicator from "../components/StepIndicator";
 import { commonPaperStyles } from "../styles/commonStyles";
 
+// TODO : 해당 페이지 제거해야 함
 // --- 1. Props 정의 ---
 interface AWSConnectionPageProps {
   stepIndex?: number;

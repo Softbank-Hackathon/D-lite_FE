@@ -171,6 +171,53 @@ export const handlers = [
     });
   }),
 
+  // Assume Role (AWS Role ARN 검증 및 저장)
+  http.post('/api/auth/assume-role', async ({ request }) => {
+    if (!isAuthenticated) {
+      return new HttpResponse(null, { status: 401, statusText: 'Unauthorized' });
+    }
+
+    const body = (await request.json()) as {
+      roleArn: string;
+      externalId?: string;
+    };
+
+    console.log('[MSW] Assume Role Request:', {
+      roleArn: body.roleArn,
+      externalId: body.externalId,
+    });
+
+    // Role ARN 형식 검증 (간단한 검증)
+    const roleArnPattern = /^arn:aws:iam::\d{12}:role\/[\w+=,.@-]+$/;
+    
+    if (!body.roleArn || !roleArnPattern.test(body.roleArn)) {
+      console.log('[MSW] Invalid Role ARN format:', body.roleArn);
+      return new HttpResponse(
+        JSON.stringify({
+          message: 'Invalid Role ARN format',
+          errorCode: 'INVALID_ROLE_ARN',
+          success: false,
+        }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 성공 응답
+    const response = {
+      message: 'Role assumed successfully',
+      result: {
+        roleArn: body.roleArn,
+        externalId: body.externalId || '12345678',
+        assumedAt: new Date().toISOString(),
+      },
+      errorCode: null,
+      success: true,
+    };
+
+    console.log('[MSW] Assume Role Success:', response);
+    return HttpResponse.json(response);
+  }),
+
   // ============================================
   // GitHub 연동 API
   // ============================================

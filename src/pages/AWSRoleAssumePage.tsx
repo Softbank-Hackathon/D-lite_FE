@@ -11,9 +11,11 @@ import {
   TextField,
 } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { useAuth } from "../contexts/AuthContext";
-import { useQuery } from "../hooks/useApi";
 import { useNavigate } from "react-router-dom";
+
+import { useAuth } from "../contexts/AuthContext";
+import { useProject } from "../contexts/ProjectContext";
+import { useQuery } from "../hooks/useApi";
 import {
   useRegistrationToken,
   useQuickCreateLink,
@@ -37,6 +39,7 @@ const generateRandomString = (length: number) => {
 
 const AWSRoleAssumePage: React.FC = () => {
   const { loading: authLoading } = useAuth();
+  const { updateProjectSettings } = useProject();
   const { data: user, isLoading: userLoading } =
     useQuery<UserMeResponse>("/api/users/me");
   const theme = useTheme();
@@ -64,6 +67,7 @@ const AWSRoleAssumePage: React.FC = () => {
     isLoading: assumeRoleLoading,
     isError: assumeRoleError,
     isSuccess: assumeRoleSuccess,
+    data: assumeRoleData,
   } = useAssumeRole();
 
   const isLoading =
@@ -95,10 +99,34 @@ const AWSRoleAssumePage: React.FC = () => {
   }, [quickCreateLinkData]);
 
   useEffect(() => {
-    if (assumeRoleSuccess) {
+    if (assumeRoleSuccess && assumeRoleData) {
+      // Save roleArn and externalId
+      const roleArnToSave = roleArnInput;
+      const externalIdToSave = registrationTokenData?.externalId || '12345678';
+      
+      console.log('[AWSRoleAssumePage] Saving Role ARN and External ID:', {
+        roleArn: roleArnToSave,
+        externalId: externalIdToSave,
+      });
+      
+      // Try to update ProjectContext (if project exists)
+      updateProjectSettings({
+        roleArn: roleArnToSave,
+        externalId: externalIdToSave,
+      });
+      
+      // For MSW development: Save to localStorage as fallback
+      // This will be loaded when user selects a repo
+      if (import.meta.env.VITE_USE_MSW === 'true') {
+        console.log('[AWSRoleAssumePage] MSW mode: Saving to localStorage as fallback');
+        localStorage.setItem('aws_role_arn', roleArnToSave);
+        localStorage.setItem('aws_external_id', externalIdToSave);
+      }
+      
+      console.log('[AWSRoleAssumePage] Saved successfully, navigating to /dashboard');
       navigate("/dashboard");
     }
-  }, [assumeRoleSuccess, navigate]);
+  }, [assumeRoleSuccess, assumeRoleData, updateProjectSettings, navigate, roleArnInput, registrationTokenData]);
 
   const handleCreateRoleArn = () => {
     registrationTokenMutate({ ttlSeconds: 3600 });

@@ -22,7 +22,7 @@ interface SelectRepoPageProps {
 // --- 3. 메인 페이지 컴포넌트 ---
 const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
   stepIndex = 0,
-  totalSteps = 5,
+  totalSteps = 4,
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -104,6 +104,30 @@ const SelectRepoPage: React.FC<SelectRepoPageProps> = ({
 
       setProjectRepo(repository);
       updateProjectSettings({ branch: selectedBranch.name });
+      
+      // MSW 모드: localStorage에서 AWS Role ARN 및 External ID 복원
+      if (import.meta.env.VITE_USE_MSW === 'true') {
+        const savedRoleArn = localStorage.getItem('aws_role_arn');
+        const savedExternalId = localStorage.getItem('aws_external_id');
+        
+        if (savedRoleArn || savedExternalId) {
+          console.log('[SelectRepoPage] MSW mode: Loading AWS credentials from localStorage', {
+            roleArn: savedRoleArn,
+            externalId: savedExternalId,
+          });
+          
+          updateProjectSettings({
+            roleArn: savedRoleArn,
+            externalId: savedExternalId,
+          });
+          
+          // Clean up localStorage after loading
+          localStorage.removeItem('aws_role_arn');
+          localStorage.removeItem('aws_external_id');
+          console.log('[SelectRepoPage] Cleaned up localStorage');
+        }
+      }
+      
       navigate("/select-framework");
     }
   };

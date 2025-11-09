@@ -32,7 +32,7 @@ interface SelectFrameworkPageProps {
 
 const SelectFrameworkPage: React.FC<SelectFrameworkPageProps> = ({
   stepIndex = 1, // 2번째 단계
-  totalSteps = 5,
+  totalSteps = 4,
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();

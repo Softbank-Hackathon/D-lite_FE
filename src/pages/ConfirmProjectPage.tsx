@@ -21,12 +21,19 @@ interface ConfirmProjectPageProps {
 
 // --- 2. 메인 페이지 컴포넌트 ---
 const ConfirmProjectPage: React.FC<ConfirmProjectPageProps> = ({
-  stepIndex = 4, // 5번째 단계
-  totalSteps = 5,
+  stepIndex = 3, // 4번째 단계
+  totalSteps = 4,
 }) => {
   const theme = useTheme();
   const { project } = useProject();
   const navigate = useNavigate();
+
+  // Debug: Log project state
+  console.log('[ConfirmProjectPage] Current project state:', {
+    project,
+    roleArn: project?.roleArn,
+    externalId: project?.externalId,
+  });
 
   // 프로젝트 정보가 없으면 대시보드로 리디렉션 (임시 주석 처리 해제 시 사용)
   // useEffect(() => {
@@ -202,7 +209,7 @@ const ConfirmProjectPage: React.FC<ConfirmProjectPageProps> = ({
         >
           <Button
             variant="text"
-            onClick={() => navigate("/connect")}
+            onClick={() => navigate("/select-region")}
             aria-label="Go back"
             sx={{
               width: "150px", // 버튼의 고정 너비
