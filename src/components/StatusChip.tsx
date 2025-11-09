@@ -1,8 +1,9 @@
 import React from 'react';
 import { Chip, useTheme } from '@mui/material';
+import type { Theme } from '@mui/material/styles'; // Import Theme type
 
 // 상태별 스타일 맵
-const statusStyles = (theme: any) => ({
+const statusStyles = (theme: Theme) => ({
   Completed: {
     backgroundColor: theme.palette.custom.success.bg,
     color: theme.palette.custom.success.text,
