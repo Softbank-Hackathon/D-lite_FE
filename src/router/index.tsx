@@ -11,7 +11,6 @@ import ConfirmProjectPage from "../pages/ConfirmProjectPage";
 import DeploymentPage from "../pages/DeploymentPage";
 import DeploymentStatusPage from "../pages/DeploymentStatusPage";
 import ApiTestPage from "../pages/ApiTestPage";
-import ProtectedRoute from "../components/ProtectedRoute";
 import AWSRoleAssumePage from "../pages/AWSRoleAssumePage";
 
 export const router = createBrowserRouter([
@@ -28,75 +27,39 @@ export const router = createBrowserRouter([
           },
           {
             path: "dashboard",
-            element: (
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            ),
+            element: <DashboardPage />,
           },
           {
             path: "select-repo",
-            element: (
-              <ProtectedRoute>
-                <SelectRepoPage />
-              </ProtectedRoute>
-            ),
+            element: <SelectRepoPage />,
           },
           {
             path: "select-framework",
-            element: (
-              <ProtectedRoute>
-                <SelectFrameworkPage />
-              </ProtectedRoute>
-            ),
+            element: <SelectFrameworkPage />,
           },
           {
             path: "select-region",
-            element: (
-              <ProtectedRoute>
-                <SelectRegionPage />
-              </ProtectedRoute>
-            ),
+            element: <SelectRegionPage />,
           },
           {
             path: "connect",
-            element: (
-              <ProtectedRoute>
-                <AWSConnectionPage />
-              </ProtectedRoute>
-            ),
+            element: <AWSConnectionPage />,
           },
           {
             path: "confirm-project",
-            element: (
-              <ProtectedRoute>
-                <ConfirmProjectPage />
-              </ProtectedRoute>
-            ),
+            element: <ConfirmProjectPage />,
           },
           {
             path: "status",
-            element: (
-              <ProtectedRoute>
-                <DeploymentStatusPage />
-              </ProtectedRoute>
-            ),
+            element: <DeploymentStatusPage />,
           },
           {
             path: "deploy",
-            element: (
-              <ProtectedRoute>
-                <DeploymentPage />
-              </ProtectedRoute>
-            ),
+            element: <DeploymentPage />,
           },
           {
             path: "test",
-            element: (
-              <ProtectedRoute>
-                <ApiTestPage />
-              </ProtectedRoute>
-            ),
+            element: <ApiTestPage />,
           },
           {
             path: "aws-assume-role",

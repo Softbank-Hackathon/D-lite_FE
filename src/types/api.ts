@@ -293,3 +293,37 @@ export type DeploymentStatusResponse =
   | DeploymentStatusInProgress
   | DeploymentStatusSuccess
   | DeploymentStatusFailed;
+
+// ============================================
+// AWS Role Assume & Quick Create Link 관련 타입
+// ============================================
+
+export interface AssumeRoleRequest {
+  roleArn: string;
+  externalId?: string;
+}
+
+export interface AssumeRoleResponse {
+  message: string;
+}
+
+export interface RegistrationTokenRequest {
+  ttlSeconds?: number;
+}
+
+export interface RegistrationTokenResponse {
+  registrationToken: string;
+  externalId: string;
+  expiresAt: string;
+}
+
+export interface QuickCreateLinkRequest {
+  externalId: string;
+  registrationToken: string;
+  region: string;
+  stackName: string;
+}
+
+export interface QuickCreateLinkResponse {
+  quickCreateUrl: string;
+}
