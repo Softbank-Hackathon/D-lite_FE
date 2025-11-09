@@ -149,6 +149,28 @@ export const handlers = [
     return HttpResponse.json({ success: true });
   }),
 
+  // Registration Token 발급 (AWS Role ARN 생성용)
+  http.post('/api/auth/registration-token', () => {
+    if (!isAuthenticated) {
+      return new HttpResponse(null, { status: 401, statusText: 'Unauthorized' });
+    }
+    return HttpResponse.json({
+      registrationToken: 'mock-registration-token-' + Date.now(),
+      externalId: '12345678', // 고정된 externalId
+      ttlSeconds: 3600,
+    });
+  }),
+
+  // Quick Create Link 생성 (AWS CloudFormation)
+  http.post('/api/auth/quick-create-link', () => {
+    if (!isAuthenticated) {
+      return new HttpResponse(null, { status: 401, statusText: 'Unauthorized' });
+    }
+    return HttpResponse.json({
+      quickCreateUrl: 'https://console.aws.amazon.com/cloudformation/home?region=ap-northeast-2#/stacks/quickcreate?templateURL=https://dlite-rolearn-test.s3.ap-northeast-2.amazonaws.com/template.yaml?response-content-disposition=inline&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEBwaDmFwLW5vcnRoZWFzdC0yIkcwRQIhAORG%2Fc3u25ZUWwvI%2BE%2B2qQHON4bu9da%2F39rvYqgpF8OoAiBHEXZuBHKBoTtYFQ7Vf%2BTm5F634%2Fo5cbJ2zmxW6Z8XIirCAwjm%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F8BEAAaDDgxNjA2OTEyNzE4NiIM3VbtiPHhIxrx0LIqKpYDEVMOCdVXc2sVE%2BbF7xWrg09HnyqyU7wd8BpQcKo1OToCRdzTLEVJlrhS8nLknnj0lFzA8vvcz4A8cQOZwlfafUlz15T19cSVkcN0oqBM7qYQkolj7JQvdj9GHGZB%2BLT5Fx31hh8mOXQ79VX%2Bi5C%2F1%2FSUyHj%2BZ1egzCulTQW%2FEq0Tr4cY9wQSLgGhrPgWotM%2FTPOs%2BDNE1Vuf5bfgqqWwkPYFzFMNNBP0DsCdq522Lmqc8TMmYeDMVwi3QRIrwqV3zZWvoibIYycodS2UsVeJlnujXxfQFr%2BaUSHCSUgJ5Gl5ThcIZChUDAqQihKbU1TyfUFRdJd8ow6d0Mo%2FA6fDmeM%2F%2BvZOFXrfJXMKLA4K%2BYY%2Bx3QyMF%2FgvF5uDBhFuOB2BKJb1pxeqYlm6FBgFJo73kXDKMPANHLOZdifv4Lht2dJ6%2FbtD3ITY7Ul9vPdZ3Q08L2715RvmbszMAcOPJcskbtnC4UOK8LBWaih5NsWtEPftFOa42YYwbbN5AK13WgnNiP732lD%2BxSMncG5uFMxnJWVUmIa8jChzr7IBjreApFJJsi3ZR7Eur3bjqZtNOfcOUKKcV%2Bty&stackName=my-stack-1&param_ExternalId=12345678',
+    });
+  }),
+
   // ============================================
   // GitHub 연동 API
   // ============================================
